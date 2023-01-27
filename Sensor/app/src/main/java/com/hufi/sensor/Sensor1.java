@@ -46,11 +46,11 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     //double aValue = 0;
     //private double timestamp = 0;
 
-    private GpsStatus mGpsStatus;
+    LocationManager lm;
+
+    //GPS Satellites
     int inUse = 0;
     int inView = 0;
-
-    LocationManager lm;
 
     double speed = 0;
     double maxSpeed = 0;
@@ -76,8 +76,8 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     public void onDestroy() {
         super.onDestroy();
         lm.removeUpdates(this);
+        stopForeground(true);
     }
-
 
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
     }
@@ -164,7 +164,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
 
     @SuppressLint("MissingPermission")
     public void getSatellitesCount() {
-        mGpsStatus = lm.getGpsStatus(null);
+        GpsStatus mGpsStatus = lm.getGpsStatus(null);
         Iterable<GpsSatellite> satellites = mGpsStatus.getSatellites();
         int iTempCountInView = 0;
         int iTempCountInUse = 0;
@@ -284,8 +284,6 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
 
             startForeground(3, noti.build());
         }
-
-
     }
 
     private Bitmap createBitmapFromString(String speed, String units) {
@@ -317,4 +315,6 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
 
         return bitmap;
     }
+
+
 }

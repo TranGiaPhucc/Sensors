@@ -36,6 +36,12 @@ public class Sensor2 extends Service implements SensorEventListener {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        stopForeground(true);
+    }
+
     public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -117,8 +123,6 @@ public class Sensor2 extends Service implements SensorEventListener {
 
             startForeground(4, noti.build());
         }
-
-
     }
 
     private Bitmap createBitmapFromString(String speed, String units) {

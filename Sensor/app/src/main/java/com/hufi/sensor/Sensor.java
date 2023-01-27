@@ -37,6 +37,12 @@ public class Sensor extends Service implements SensorEventListener {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        stopForeground(true);
+    }
+
     public void onAccuracyChanged(android.hardware.Sensor sensor, int accuracy) {}
 
     @RequiresApi(api = Build.VERSION_CODES.M)
