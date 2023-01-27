@@ -102,7 +102,7 @@ public class Sensor extends Service implements SensorEventListener {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel("My notification light", "My notification light", NotificationManager.IMPORTANCE_HIGH);
+            NotificationChannel channel = new NotificationChannel("My notification light", "My notification light", NotificationManager.IMPORTANCE_DEFAULT);
             channel.setVibrationPattern(new long[]{ 0 });
             channel.enableVibration(false);
 

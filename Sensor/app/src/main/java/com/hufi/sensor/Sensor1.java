@@ -241,9 +241,11 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         if (valueV > maxSpeed)
             maxSpeed = valueV;
 
-        countSpeed += 1;
-        totalSpeed += valueV;
-        avgSpeed = totalSpeed / (double) countSpeed;
+        if (inUse > 0) {
+            countSpeed += 1;
+            totalSpeed += valueV;
+            avgSpeed = totalSpeed / (double) countSpeed;
+        }
 
         avgSpeed = (double)Math.round(avgSpeed * 10) / 10;
 
@@ -264,7 +266,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel("My notification a", "My notification a", NotificationManager.IMPORTANCE_HIGH);
+            NotificationChannel channel = new NotificationChannel("My notification a", "My notification a", NotificationManager.IMPORTANCE_DEFAULT);
             channel.setVibrationPattern(new long[]{ 0 });
             channel.enableVibration(false);
 
