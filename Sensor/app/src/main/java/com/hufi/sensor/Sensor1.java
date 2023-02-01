@@ -18,6 +18,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Criteria;
+import android.location.GnssStatus;
 import android.location.GpsSatellite;
 import android.location.GpsStatus;
 import android.location.Location;
@@ -45,6 +46,8 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     //double vValue = 0;
     //double aValue = 0;
     //private double timestamp = 0;
+
+    boolean gpsSatellites = false;
 
     LocationManager lm;
 
@@ -99,47 +102,43 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         showNotification();
     }*/
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     public void onGpsStatusChanged(int event) {
         getSatellitesCount();
         showNotification();
     }
 
-    @SuppressLint("MissingPermission")
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        lm.addGpsStatusListener(this);
-        /*if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "Location permission disabled.", Toast.LENGTH_LONG).show();
-        }*/
-        /*if (!lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            Toast.makeText(this, "GPS disabled.", Toast.LENGTH_LONG).show();
-        }*/
-        //else {
+        gpsSatellites = intent.getBooleanExtra("gpsSatellites", false);
+
+        lm = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return super.onStartCommand(intent, flags, startId);
+        }
 
         lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
 
-        /*Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        if (location != null && location.getTime() > Calendar.getInstance().getTimeInMillis() - 2 * 60 * 1000) {
-            // Do something with the recent location fix
-            //  otherwise wait for the update below
-        } else {
-            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-        }*/
+        if (gpsSatellites == true)
+            lm.addGpsStatusListener(this);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             start();
-        }
+        //}
 
         /*sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
         light = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
 
         if (light != null) {
             sensorManager.registerListener(this, light, SensorManager.SENSOR_DELAY_NORMAL);
-
-
         }*/
 
         return super.onStartCommand(intent, flags, startId);
@@ -154,7 +153,6 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     public void onLocationChanged(Location location) {
         //if (location != null) {
         //}
@@ -210,7 +208,6 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         return radius * c;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private void start()
     {
         showNotification();
@@ -227,8 +224,6 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         }
     };*/
 
-    @SuppressLint("RestrictedApi")
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private void showNotification() {
         // TODO Auto-generated method stub
 
@@ -241,7 +236,14 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         if (valueV > maxSpeed)
             maxSpeed = valueV;
 
-        if (inUse > 0) {
+        if (gpsSatellites == true) {
+            if (inUse > 0) {
+                countSpeed += 1;
+                totalSpeed += valueV;
+                avgSpeed = totalSpeed / (double) countSpeed;
+            }
+        }
+        else {
             countSpeed += 1;
             totalSpeed += valueV;
             avgSpeed = totalSpeed / (double) countSpeed;
@@ -256,7 +258,12 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         if (inView > 0)
             strInView = "Connected";
 
-        String title = valueV +" km/h" + "        Satellites: " + strInUse + "/" + strInView;
+        String title = "";
+        if (gpsSatellites == true)
+            title = valueV +" km/h" + "        Satellites: " + strInUse + "/" + strInView;
+        else
+            title = valueV +" km/h";
+
         String contentText = "Max speed: " + maxSpeed + " km/h" + "        Average speed: "  + avgSpeed + " km/h";
 
         Bitmap bitmap = createBitmapFromString(Double.toString(valueV), "km/h");

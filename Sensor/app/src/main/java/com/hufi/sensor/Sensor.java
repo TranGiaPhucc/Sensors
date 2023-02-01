@@ -45,7 +45,6 @@ public class Sensor extends Service implements SensorEventListener {
 
     public void onAccuracyChanged(android.hardware.Sensor sensor, int accuracy) {}
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     public void onSensorChanged(SensorEvent event) {
 
         if (event.sensor.getType() != android.hardware.Sensor.TYPE_LIGHT) return;
@@ -71,7 +70,6 @@ public class Sensor extends Service implements SensorEventListener {
         return super.onStartCommand(intent, flags, startId);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private void start()
     {
         showNotification();
@@ -88,8 +86,6 @@ public class Sensor extends Service implements SensorEventListener {
         }
     };*/
 
-    @SuppressLint("RestrictedApi")
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private void showNotification() {
         // TODO Auto-generated method stub
 

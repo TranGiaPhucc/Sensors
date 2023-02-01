@@ -20,7 +20,7 @@
         android:layout_marginLeft="30dp"
         android:layout_marginTop="10dp"
         android:layout_below="@id/cbxLight"
-        android:text="Gravity Force Y Axis Sensor"
+        android:text="Battery Temperature"
         android:id="@+id/cbxGravity"/>
 
     <CheckBox
@@ -33,12 +33,20 @@
         android:id="@+id/cbxInternet"/>
 
     <CheckBox
+        android:id="@+id/cbxAcc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@id/cbxInternet"
         android:layout_marginLeft="30dp"
         android:layout_marginTop="10dp"
-        android:layout_below="@id/cbxInternet"
-        android:text="Speedometer (GPS)"
-        android:id="@+id/cbxAcc"/>
+        android:text="Speedometer (GPS)" />
+
+    <CheckBox
+        android:id="@+id/cbxSatellites"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/cbxAcc"
+        android:layout_marginLeft="60dp"
+        android:text="Satellites Check" />
 
 </RelativeLayout>

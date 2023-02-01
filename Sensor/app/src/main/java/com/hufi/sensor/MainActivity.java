@@ -1,8 +1,10 @@
 package com.hufi.sensor;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
@@ -16,7 +18,9 @@ import android.widget.CompoundButton;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
-    CheckBox cbxLight, cbxAcc, cbxGravity, cbxInternet;
+    CheckBox cbxLight, cbxAcc, cbxGravity, cbxInternet, cbxSatellites;
+    boolean gpsSatellites = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
         cbxAcc = findViewById(R.id.cbxAcc);
         cbxGravity = findViewById(R.id.cbxGravity);
         cbxInternet = findViewById(R.id.cbxInternet);
+        cbxSatellites = findViewById(R.id.cbxSatellites);
 
         if (!isMyServiceRunning(Sensor.class))
         {
@@ -38,8 +43,10 @@ public class MainActivity extends AppCompatActivity {
         {
             cbxAcc.setChecked(false);
         }
-        else
+        else {
             cbxAcc.setChecked(true);
+            cbxSatellites.setEnabled(false);
+        }
 
         if (!isMyServiceRunning(Sensor2.class))
         {
@@ -54,6 +61,16 @@ public class MainActivity extends AppCompatActivity {
         }
         else
             cbxInternet.setChecked(true);
+
+        cbxSatellites.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (b)
+                    gpsSatellites = true;
+                else
+                    gpsSatellites = false;
+            }
+        });
 
         cbxLight.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -79,22 +96,30 @@ public class MainActivity extends AppCompatActivity {
                             requestPermissions(permissions1,2);
 
                             cbxAcc.setChecked(false);
+                            cbxSatellites.setEnabled(true);
                         }
                         else {
                             LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
                             if (!lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                                 Toast.makeText(MainActivity.this, "GPS disabled.", Toast.LENGTH_LONG).show();
+
                                 cbxAcc.setChecked(false);
+                                cbxSatellites.setEnabled(true);
                             }
                             else if (!isMyServiceRunning(Sensor1.class)) {
-                                startService(new Intent(MainActivity.this, Sensor1.class));
+                                Intent intent = new Intent(MainActivity.this, Sensor1.class);
+                                intent.putExtra("gpsSatellites", gpsSatellites);
+                                startService(intent);
+
+                                cbxSatellites.setEnabled(false);
                             }
                         }
                     }
-
                 }
-                else
+                else {
                     stopService(new Intent(MainActivity.this, Sensor1.class));
+                    cbxSatellites.setEnabled(true);
+                }
             }
         });
 

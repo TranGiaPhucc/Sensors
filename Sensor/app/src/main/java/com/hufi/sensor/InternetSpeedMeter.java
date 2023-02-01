@@ -123,7 +123,6 @@ public class InternetSpeedMeter extends Service {
     }
 
     private final Runnable mRunnable = new Runnable() {
-        @RequiresApi(api = Build.VERSION_CODES.M)
         public void run() {
             rxBytes = (TrafficStats.getTotalRxBytes() - mStartRX)/1024;        //KBps
             txBytes = (TrafficStats.getTotalTxBytes() - mStartTX)/1024;           //KBps
@@ -148,8 +147,6 @@ public class InternetSpeedMeter extends Service {
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
-    @SuppressLint("RestrictedApi")
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private void showNotification() {
         // TODO Auto-generated method stub
 
