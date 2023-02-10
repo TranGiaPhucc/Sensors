@@ -13,6 +13,7 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Toast;
@@ -97,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
 
                             cbxAcc.setChecked(false);
                             cbxSatellites.setEnabled(true);
+                            //cbxSatellites.setVisibility(View.VISIBLE);
                         }
                         else {
                             LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -105,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
 
                                 cbxAcc.setChecked(false);
                                 cbxSatellites.setEnabled(true);
+                                cbxSatellites.setVisibility(View.VISIBLE);
                             }
                             else if (!isMyServiceRunning(Sensor1.class)) {
                                 Intent intent = new Intent(MainActivity.this, Sensor1.class);
@@ -112,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
                                 startService(intent);
 
                                 cbxSatellites.setEnabled(false);
+                                //cbxSatellites.setVisibility(View.INVISIBLE);
                             }
                         }
                     }
@@ -119,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
                 else {
                     stopService(new Intent(MainActivity.this, Sensor1.class));
                     cbxSatellites.setEnabled(true);
+                    //cbxSatellites.setVisibility(View.VISIBLE);
                 }
             }
         });

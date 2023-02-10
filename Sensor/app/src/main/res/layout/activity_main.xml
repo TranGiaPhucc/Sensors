@@ -47,6 +47,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/cbxAcc"
         android:layout_marginLeft="60dp"
+        android:visibility="gone"
         android:text="Satellites Check" />
 
 </RelativeLayout>

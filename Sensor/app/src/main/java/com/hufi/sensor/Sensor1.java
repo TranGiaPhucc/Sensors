@@ -54,10 +54,13 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     //GPS Satellites
     int inUse = 0;
     int inView = 0;
+    String strInUse = "Not used";
+    String strInView = "Not connected";
 
     double speed = 0;
     double maxSpeed = 0;
 
+    double length = 0;
     double totalSpeed = 0;
     double avgSpeed = 0;
     int countSpeed = 0;
@@ -104,7 +107,6 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
 
     public void onGpsStatusChanged(int event) {
         getSatellitesCount();
-        showNotification();
     }
 
     @Override
@@ -125,7 +127,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
             return super.onStartCommand(intent, flags, startId);
         }
 
-        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
 
         if (gpsSatellites == true)
             lm.addGpsStatusListener(this);
@@ -231,42 +233,49 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         //double valuedV = (double)Math.round(dV * 3.6 * 10) / 10;
         //String contentText = "Accelerometer: "  + valueA + " m/s2" + "        Velocity: " + valueV + " km/h";
 
-        double valueV = (double)Math.round(speed * 3.6 * 10) / 10;
+        //double valueV = (double)Math.round(speed * 3.6 * 10) / 10;
 
-        if (valueV > maxSpeed)
-            maxSpeed = valueV;
+        if (speed > maxSpeed)
+            maxSpeed = speed;
 
         if (gpsSatellites == true) {
             if (inUse > 0) {
                 countSpeed += 1;
-                totalSpeed += valueV;
+                totalSpeed += speed;
                 avgSpeed = totalSpeed / (double) countSpeed;
+                length += speed / (double) 3600;
             }
         }
         else {
             countSpeed += 1;
-            totalSpeed += valueV;
+            totalSpeed += speed;
             avgSpeed = totalSpeed / (double) countSpeed;
+            length += speed / (double) 3600;
         }
 
-        avgSpeed = (double)Math.round(avgSpeed * 10) / 10;
+        double speedS = (double)Math.round(speed * 3.6 * 10) / 10;
+        double totalSpeedS = (double)Math.round(totalSpeed * 3.6 * 10) / 10;
+        double maxSpeedS = (double)Math.round(maxSpeed * 3.6 * 10) / 10;
+        double avgSpeedS = (double)Math.round(avgSpeed * 3.6 * 10) / 10;
+        double lengthS = (double)Math.round(length * 3.6 * 10) / 10;
 
-        String strInUse = "Not used";
         if (inUse > 0)
             strInUse = "In used";
-        String strInView = "Not connected";
+        else strInUse = "Not used";
         if (inView > 0)
             strInView = "Connected";
+        else strInView = "Not connected";
 
         String title = "";
         if (gpsSatellites == true)
-            title = valueV +" km/h" + "        Satellites: " + strInUse + "/" + strInView;
+            title = "(" + countSpeed + "s) " + speedS + " km/h" + "        Satellites: " + strInUse + "/" + strInView;
         else
-            title = valueV +" km/h";
+            title = speedS + " km/h" + " (" + countSpeed + "s)";
+            //title = speedS + " km/h" + " (" + countSpeed + "s) " + "        (debug)Total: " + totalSpeedS + " km/h";
 
-        String contentText = "Max speed: " + maxSpeed + " km/h" + "        Average speed: "  + avgSpeed + " km/h";
+        String contentText = "Max: " + maxSpeedS + " km/h    Avg: "  + avgSpeedS + " km/h    Length: " + lengthS + " km";
 
-        Bitmap bitmap = createBitmapFromString(Double.toString(valueV), "km/h");
+        Bitmap bitmap = createBitmapFromString(Double.toString(speedS), "km/h");
         Icon icon = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             icon = Icon.createWithBitmap(bitmap);
