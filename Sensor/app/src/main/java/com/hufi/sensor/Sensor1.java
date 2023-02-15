@@ -47,6 +47,8 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     //double aValue = 0;
     //private double timestamp = 0;
 
+    private int requestInterval = 100;      //Default: 1000 (1000ms = 1s)
+
     boolean gpsSatellites = false;
 
     LocationManager lm;
@@ -127,7 +129,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
             return super.onStartCommand(intent, flags, startId);
         }
 
-        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
+        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, requestInterval, 0, this);
 
         if (gpsSatellites == true)
             lm.addGpsStatusListener(this);
@@ -266,11 +268,13 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
             strInView = "Connected";
         else strInView = "Not connected";
 
+        double countS = countSpeed * ((double) requestInterval / 1000);
+
         String title = "";
         if (gpsSatellites == true)
-            title = "(" + countSpeed + "s) " + speedS + " km/h" + "        Satellites: " + strInUse + "/" + strInView;
+            title = "(" + (double)Math.round(countS * 10) / 10 + "s) " + speedS + " km/h" + "        Satellites: " + strInUse + "/" + strInView;
         else
-            title = speedS + " km/h" + " (" + countSpeed + "s)";
+            title = speedS + " km/h" + " (" + (double)Math.round(countS * 10) / 10 + "s)";
             //title = speedS + " km/h" + " (" + countSpeed + "s) " + "        (debug)Total: " + totalSpeedS + " km/h";
 
         String contentText = "Max: " + maxSpeedS + " km/h    Avg: "  + avgSpeedS + " km/h    Length: " + lengthS + " km";

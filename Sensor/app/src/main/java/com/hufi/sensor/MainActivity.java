@@ -12,14 +12,21 @@ import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Toast;
 
+import java.util.Locale;
+
 public class MainActivity extends AppCompatActivity {
-    CheckBox cbxLight, cbxAcc, cbxGravity, cbxInternet, cbxSatellites;
+    CheckBox cbxLight, cbxAcc, cbxGravity, cbxInternet, cbxSatellites, cbxSpeechToText;
+    Button btnSpeech;
+    TextToSpeech t1;
+
     boolean gpsSatellites = false;
 
     @Override
@@ -27,11 +34,22 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+         t1 = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if(status != TextToSpeech.ERROR) {
+                    t1.setLanguage(Locale.JAPAN);
+                }
+            }
+        });
+
         cbxLight = findViewById(R.id.cbxLight);
         cbxAcc = findViewById(R.id.cbxAcc);
         cbxGravity = findViewById(R.id.cbxGravity);
         cbxInternet = findViewById(R.id.cbxInternet);
         cbxSatellites = findViewById(R.id.cbxSatellites);
+        cbxSpeechToText = findViewById(R.id.cbxSpeechToText);
+        btnSpeech = findViewById(R.id.btnSpeech);
 
         if (!isMyServiceRunning(Sensor.class))
         {
@@ -63,6 +81,22 @@ public class MainActivity extends AppCompatActivity {
         else
             cbxInternet.setChecked(true);
 
+        if (!isMyServiceRunning(SpeechToText.class))
+        {
+            cbxSpeechToText.setChecked(false);
+        }
+        else
+            cbxSpeechToText.setChecked(true);
+
+        btnSpeech.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String toSpeak = "Ohaiyo";
+                Toast.makeText(getApplicationContext(), toSpeak,Toast.LENGTH_SHORT).show();
+                t1.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null);
+            }
+        });
+
         cbxSatellites.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -70,6 +104,29 @@ public class MainActivity extends AppCompatActivity {
                     gpsSatellites = true;
                 else
                     gpsSatellites = false;
+            }
+        });
+
+        cbxSpeechToText.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (b) {
+                    if(Build.VERSION.SDK_INT>= Build.VERSION_CODES.M) {
+                        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                            String[] permissions = {Manifest.permission.RECORD_AUDIO};
+                            requestPermissions(permissions, 1);
+
+                            cbxSpeechToText.setChecked(false);
+                        }
+                        else if (!isMyServiceRunning(SpeechToText.class)) {
+                            Intent intent = new Intent(MainActivity.this, SpeechToText.class);
+                            //intent.putExtra("speech", speech);
+                            startService(intent);
+                        }
+                    }
+                }
+                else
+                    stopService(new Intent(MainActivity.this, SpeechToText.class));
             }
         });
 
@@ -97,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
                             requestPermissions(permissions1,2);
 
                             cbxAcc.setChecked(false);
-                            cbxSatellites.setEnabled(true);
+                            //cbxSatellites.setEnabled(true);
                             //cbxSatellites.setVisibility(View.VISIBLE);
                         }
                         else {
@@ -106,15 +163,15 @@ public class MainActivity extends AppCompatActivity {
                                 Toast.makeText(MainActivity.this, "GPS disabled.", Toast.LENGTH_LONG).show();
 
                                 cbxAcc.setChecked(false);
-                                cbxSatellites.setEnabled(true);
-                                cbxSatellites.setVisibility(View.VISIBLE);
+                                //cbxSatellites.setEnabled(true);
+                                //cbxSatellites.setVisibility(View.VISIBLE);
                             }
                             else if (!isMyServiceRunning(Sensor1.class)) {
                                 Intent intent = new Intent(MainActivity.this, Sensor1.class);
                                 intent.putExtra("gpsSatellites", gpsSatellites);
                                 startService(intent);
 
-                                cbxSatellites.setEnabled(false);
+                                //cbxSatellites.setEnabled(false);
                                 //cbxSatellites.setVisibility(View.INVISIBLE);
                             }
                         }
@@ -122,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 else {
                     stopService(new Intent(MainActivity.this, Sensor1.class));
-                    cbxSatellites.setEnabled(true);
+                    //cbxSatellites.setEnabled(true);
                     //cbxSatellites.setVisibility(View.VISIBLE);
                 }
             }

@@ -50,4 +50,32 @@
         android:visibility="gone"
         android:text="Satellites Check" />
 
+    <CheckBox
+        android:id="@+id/cbxSpeechToText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/cbxAcc"
+        android:layout_marginLeft="30dp"
+        android:layout_marginTop="10dp"
+        android:text="Speech To Text" />
+
+    <CheckBox
+        android:id="@+id/cbxSTTspeech"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/cbxSpeechToText"
+        android:visibility="gone"
+        android:layout_marginLeft="60dp"
+        android:text="Speak The Text" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/cbxSTTspeech"
+        android:layout_marginLeft="30dp"
+        android:layout_marginTop="10dp"
+        android:text="Speak"
+        android:textAllCaps="false"
+        android:id="@+id/btnSpeech" />
+
 </RelativeLayout>
