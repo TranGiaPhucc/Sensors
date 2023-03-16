@@ -17,7 +17,9 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Address;
 import android.location.Criteria;
+import android.location.Geocoder;
 import android.location.GnssStatus;
 import android.location.GpsSatellite;
 import android.location.GpsStatus;
@@ -35,8 +37,14 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.graphics.drawable.IconCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.google.android.gms.location.FusedLocationProviderApi;
+
+import java.io.IOException;
 import java.util.Calendar;
+import java.util.List;
+import java.util.Locale;
 
 public class Sensor1 extends Service implements LocationListener, GpsStatus.Listener {
 
@@ -47,9 +55,8 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     //double aValue = 0;
     //private double timestamp = 0;
 
-    private int requestInterval = 100;      //Default: 1000 (1000ms = 1s)
-
     boolean gpsSatellites = false;
+    boolean modeGPS = true;
 
     LocationManager lm;
 
@@ -59,17 +66,26 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     String strInUse = "Not used";
     String strInView = "Not connected";
 
+    double accuracy = 0;    //meter
+
+    double speedCalc = 0;
     double speed = 0;
     double maxSpeed = 0;
+    double maxCalcSpeed = 0;
+    double avgCalcSpeed = 0;
 
+    double totalSpeedCalc = 0;
+    double lengthCalc = 0;
+    double lengthTest = 0;
     double length = 0;
-    double totalSpeed = 0;
     double avgSpeed = 0;
     int countSpeed = 0;
 
     double curTime = 0;
     double oldLat = 0.0;
     double oldLon = 0.0;
+    double newLat = 0.0;
+    double newLon = 0.0;
 
     public Sensor1() {
     }
@@ -115,6 +131,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         gpsSatellites = intent.getBooleanExtra("gpsSatellites", false);
+        modeGPS = intent.getBooleanExtra("modeGPS", true);
 
         lm = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
 
@@ -129,7 +146,10 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
             return super.onStartCommand(intent, flags, startId);
         }
 
-        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, requestInterval, 0, this);
+        if (modeGPS)
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
+        else
+            lm.requestLocationUpdates(LocationManager.FUSED_PROVIDER, 1000, 0, this);
 
         if (gpsSatellites == true)
             lm.addGpsStatusListener(this);
@@ -184,20 +204,39 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
 
     private void getSpeed(Location location){
         double newTime= System.currentTimeMillis();
-        double newLat = location.getLatitude();
-        double newLon = location.getLongitude();
+        newLat = location.getLatitude();
+        newLon = location.getLongitude();
+
+        double distance = calculationBydistance(newLat,newLon,oldLat,oldLon);
+
+        double timeDifferent = (newTime - curTime) / 1000;    //Convert milis to s
+
+        if (oldLat != 0 || oldLon != 0) {
+            speedCalc = distance / timeDifferent;
+            if (speedCalc >= 1) {
+                lengthCalc += distance;
+                totalSpeedCalc += speedCalc;
+            }
+        }
+
+        curTime = newTime;
+        oldLat = newLat;
+        oldLon = newLon;
+
         if (location.hasSpeed()) {
-            //Toast.makeText(this, "location.hasSpeed() true  lat: " + newLat + " long: " + newLon, Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "true  lat: " + newLat + " long: " + newLon, Toast.LENGTH_SHORT).show();
             speed = location.getSpeed();
+            accuracy = location.getAccuracy();
         }
         else {
-            //Toast.makeText(this, "location.hasSpeed() false  lat: " + newLat + " long: " + newLon, Toast.LENGTH_SHORT).show();
-            double distance = calculationBydistance(newLat,newLon,oldLat,oldLon);
+            //Toast.makeText(this, "false  lat: " + newLat + " long: " + newLon, Toast.LENGTH_SHORT).show();
+            accuracy = location.getAccuracy();
+            /*double distance = calculationBydistance(newLat,newLon,oldLat,oldLon);
             double timeDifferent = newTime - curTime;
-            speed = distance/timeDifferent*1000;        //Convert m/milis to m/s
+            speedCalc = distance/timeDifferent*1000;        //Convert m/milis to m/s
             curTime = newTime;
             oldLat = newLat;
-            oldLon = newLon;
+            oldLon = newLon;*/
         }
     }
 
@@ -240,26 +279,44 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         if (speed > maxSpeed)
             maxSpeed = speed;
 
+        if (speedCalc > maxCalcSpeed)
+            maxCalcSpeed = speedCalc;
+
+        double speedS = (double)Math.round(speed * 3.6 * 10) / 10;
+        double speedCalcS = (double)Math.round(speedCalc * 3.6 * 10) / 10;
+
         if (gpsSatellites == true) {
             if (inUse > 0) {
                 countSpeed += 1;
-                totalSpeed += speed;
-                avgSpeed = totalSpeed / (double) countSpeed;
-                length += speed / (double) 3600;
+                length += speed;        //length (meter)
+                avgSpeed = length / (double) countSpeed;
+                //length += speed / (double) 3600;
+
+                avgCalcSpeed = totalSpeedCalc / (double) countSpeed;
+
+                lengthTest += speed * (1.0 + speedS / 100);
             }
         }
         else {
             countSpeed += 1;
-            totalSpeed += speed;
-            avgSpeed = totalSpeed / (double) countSpeed;
-            length += speed / (double) 3600;
+            length += speed;        //length (meter)
+            avgSpeed = length / (double) countSpeed;
+            //length += speed / (double) 3600;
+
+            avgCalcSpeed = totalSpeedCalc / (double) countSpeed;
+
+            lengthTest += speed * (1.0 + speedS / 100 / 2);
         }
 
-        double speedS = (double)Math.round(speed * 3.6 * 10) / 10;
-        double totalSpeedS = (double)Math.round(totalSpeed * 3.6 * 10) / 10;
+        double accuracyS = (double)Math.round(accuracy * 10) / 10;
         double maxSpeedS = (double)Math.round(maxSpeed * 3.6 * 10) / 10;
         double avgSpeedS = (double)Math.round(avgSpeed * 3.6 * 10) / 10;
-        double lengthS = (double)Math.round(length * 3.6 * 10) / 10;
+        double lengthS = (double)Math.round(length * 10) / 10;   //1.2 is just cablirated, simulated as acceleration
+        double lengthTestS = (double)Math.round(lengthTest);
+
+        double maxCalcSpeedS = (double)Math.round(maxCalcSpeed * 3.6 * 10) / 10;
+        double avgCalcSpeedS = (double)Math.round(avgCalcSpeed * 3.6 * 10) / 10;
+        double lengthCalcS = (double)Math.round(lengthCalc);
 
         if (inUse > 0)
             strInUse = "In used";
@@ -268,18 +325,46 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
             strInView = "Connected";
         else strInView = "Not connected";
 
-        double countS = countSpeed * ((double) requestInterval / 1000);
+        String district = "";
+
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        List<Address> addresses = null;
+        try {
+            addresses = geocoder.getFromLocation(newLat, newLon, 1);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (addresses.size() > 0) {
+            district = addresses.get(0).getAddressLine(0);
+        }
+
+        Intent intent = new Intent("gps");
+        // Adding some data
+        intent.putExtra("accuracy", accuracyS);
+        intent.putExtra("time", countSpeed);
+        intent.putExtra("speed", speedS);
+        intent.putExtra("speedCalc", speedCalcS);
+        intent.putExtra("maxSpeed", maxSpeedS);
+        intent.putExtra("maxSpeedCalc", maxCalcSpeedS);
+        intent.putExtra("avgSpeed", avgSpeedS);
+        intent.putExtra("avgSpeedCalc", avgCalcSpeedS);
+        intent.putExtra("length", (int) lengthCalcS);
+        intent.putExtra("district", district);
+
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
         String title = "";
         if (gpsSatellites == true)
-            title = "(" + (double)Math.round(countS * 10) / 10 + "s) " + speedS + " km/h" + "        Satellites: " + strInUse + "/" + strInView;
+            title = "(" + countSpeed + "s) " + speedS + " km/h" + "        Satellites: " + strInUse + "/" + strInView;
         else
-            title = speedS + " km/h" + " (" + (double)Math.round(countS * 10) / 10 + "s)";
+            title = speedS + " (" + speedCalcS +") km/h" + " (" + countSpeed + " s)        " + "Accuracy: " + accuracyS + " m";
             //title = speedS + " km/h" + " (" + countSpeed + "s) " + "        (debug)Total: " + totalSpeedS + " km/h";
 
-        String contentText = "Max: " + maxSpeedS + " km/h    Avg: "  + avgSpeedS + " km/h    Length: " + lengthS + " km";
+        String contentText = "M: " + maxSpeedS + " (" + maxCalcSpeedS +") km/h    A: "  + avgSpeedS + " (" + avgCalcSpeedS +") km/h    L: " + (int) lengthCalcS + " m";
+        String expandText = "\n" + contentText + "\n\n" + district;
 
-        Bitmap bitmap = createBitmapFromString(Double.toString(speedS), "km/h");
+        Bitmap bitmap = createBitmapFromString(Double.toString(speedS), Double.toString(speedCalcS));
         Icon icon = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             icon = Icon.createWithBitmap(bitmap);
@@ -299,6 +384,8 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
                     .setContentText(contentText)
                     //builder.setSmallIcon(R.mipmap.ic_launcher_round);
                     .setSmallIcon(IconCompat.createFromIcon(icon))
+                    .setStyle(new NotificationCompat.BigTextStyle()
+                            .bigText(expandText))
                     .setAutoCancel(false)
                     .setOnlyAlertOnce(true);
 

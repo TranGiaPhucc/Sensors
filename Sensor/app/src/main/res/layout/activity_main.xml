@@ -6,76 +6,155 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <CheckBox
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="30dp"
-        android:layout_marginTop="30dp"
-        android:text="Light Sensor"
-        android:id="@+id/cbxLight"/>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
 
-    <CheckBox
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="30dp"
-        android:layout_marginTop="10dp"
-        android:layout_below="@id/cbxLight"
-        android:text="Battery Temperature"
-        android:id="@+id/cbxGravity"/>
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="30dp"
+            android:layout_marginTop="30dp"
+            android:text="Light Sensor"
+            android:id="@+id/cbxLight"/>
 
-    <CheckBox
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="30dp"
-        android:layout_marginTop="10dp"
-        android:layout_below="@id/cbxGravity"
-        android:text="Internet Speed Meter"
-        android:id="@+id/cbxInternet"/>
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="30dp"
+            android:layout_marginTop="10dp"
+            android:layout_below="@id/cbxLight"
+            android:text="Battery Temperature"
+            android:id="@+id/cbxGravity"/>
 
-    <CheckBox
-        android:id="@+id/cbxAcc"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/cbxInternet"
-        android:layout_marginLeft="30dp"
-        android:layout_marginTop="10dp"
-        android:text="Speedometer (GPS)" />
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="30dp"
+            android:layout_marginTop="10dp"
+            android:layout_below="@id/cbxGravity"
+            android:text="Internet Speed Meter"
+            android:id="@+id/cbxInternet"/>
 
-    <CheckBox
-        android:id="@+id/cbxSatellites"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/cbxAcc"
-        android:layout_marginLeft="60dp"
-        android:visibility="gone"
-        android:text="Satellites Check" />
+        <CheckBox
+            android:id="@+id/cbxAcc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cbxInternet"
+            android:layout_marginLeft="30dp"
+            android:layout_marginTop="10dp"
+            android:text="Speedometer (GPS)" />
 
-    <CheckBox
-        android:id="@+id/cbxSpeechToText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/cbxAcc"
-        android:layout_marginLeft="30dp"
-        android:layout_marginTop="10dp"
-        android:text="Speech To Text" />
+        <CheckBox
+            android:id="@+id/cbxGPSMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_below="@id/cbxInternet"
+            android:layout_marginRight="30dp"
+            android:layout_marginTop="10dp"
+            android:checked="true"
+            android:text="GPS Mode" />
 
-    <CheckBox
-        android:id="@+id/cbxSTTspeech"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/cbxSpeechToText"
-        android:visibility="gone"
-        android:layout_marginLeft="60dp"
-        android:text="Speak The Text" />
+        <CheckBox
+            android:id="@+id/cbxSatellites"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cbxAcc"
+            android:layout_marginLeft="60dp"
+            android:visibility="gone"
+            android:text="Satellites Check" />
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/cbxSTTspeech"
-        android:layout_marginLeft="30dp"
-        android:layout_marginTop="10dp"
-        android:text="Speak"
-        android:textAllCaps="false"
-        android:id="@+id/btnSpeech" />
+        <CheckBox
+            android:id="@+id/cbxSpeechToText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lbGPS"
+            android:layout_marginLeft="30dp"
+            android:layout_marginTop="10dp"
+            android:text="Speech To Text" />
+
+        <CheckBox
+            android:id="@+id/cbxSTTspeech"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cbxSpeechToText"
+            android:visibility="gone"
+            android:layout_marginLeft="60dp"
+            android:text="Speak The Text" />
+
+        <Button
+            android:id="@+id/btnSpeech"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lbGPS"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="30dp"
+            android:text="Speak"
+            android:textAllCaps="false" />
+
+        <CheckBox
+            android:id="@+id/cbxScreenTranslateOCR"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cbxSpeechToText"
+            android:layout_marginLeft="30dp"
+            android:layout_marginTop="10dp"
+            android:text="Screen Translate OCR" />
+
+        <Button
+            android:id="@+id/btnScreenshot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cbxSpeechToText"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="30dp"
+            android:layout_marginTop="10dp"
+            android:text="Screenshot"
+            android:textAllCaps="false" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="200dp"
+            android:layout_below="@id/txtOCR"
+            android:layout_centerHorizontal="true"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:id="@+id/imgScreenshot" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cbxScreenTranslateOCR"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginTop="10dp"
+            android:enabled="true"
+            android:textIsSelectable="true"
+            android:focusable="true"
+            android:longClickable="true"
+            android:id="@+id/txtOCR" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:layout_below="@id/cbxAcc"
+            android:text=""
+            android:enabled="true"
+            android:textIsSelectable="true"
+            android:focusable="true"
+            android:longClickable="true"
+            android:id="@+id/lbGPS" />
+
+    </RelativeLayout>
+    </ScrollView>
 
 </RelativeLayout>
