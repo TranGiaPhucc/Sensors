@@ -147,9 +147,9 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         }
 
         if (modeGPS)
-            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
         else
-            lm.requestLocationUpdates(LocationManager.FUSED_PROVIDER, 1000, 0, this);
+            lm.requestLocationUpdates(LocationManager.FUSED_PROVIDER, 0, 0, this);
 
         if (gpsSatellites == true)
             lm.addGpsStatusListener(this);
@@ -331,12 +331,16 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         List<Address> addresses = null;
         try {
             addresses = geocoder.getFromLocation(newLat, newLon, 1);
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException | IllegalStateException e) {
+            //e.printStackTrace();
+            Toast.makeText(this, "" + e, Toast.LENGTH_LONG).show();
         }
 
-        if (addresses.size() > 0) {
-            district = addresses.get(0).getAddressLine(0);
+        if (addresses != null && addresses.size() > 0) {
+            //district = addresses.get(0).getAddressLine(0);
+
+            for (int i = 0; i < addresses.size(); i++)
+                district += addresses.get(0).getAddressLine(i);
         }
 
         Intent intent = new Intent("gps");
@@ -361,8 +365,9 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
             title = speedS + " (" + speedCalcS +") km/h" + " (" + countSpeed + " s)        " + "Accuracy: " + accuracyS + " m";
             //title = speedS + " km/h" + " (" + countSpeed + "s) " + "        (debug)Total: " + totalSpeedS + " km/h";
 
-        String contentText = "M: " + maxSpeedS + " (" + maxCalcSpeedS +") km/h    A: "  + avgSpeedS + " (" + avgCalcSpeedS +") km/h    L: " + (int) lengthCalcS + " m";
-        String expandText = "\n" + contentText + "\n\n" + district;
+        String content = "Max:          " + maxSpeedS + " (" + maxCalcSpeedS +") km/h\nAverage:   "  + avgSpeedS + " (" + avgCalcSpeedS +") km/h\nLength:     " + (int) lengthCalcS + " m";
+        String contentText = district;
+        String expandText = "\n" + contentText + "\n\n" + content;
 
         Bitmap bitmap = createBitmapFromString(Double.toString(speedS), Double.toString(speedCalcS));
         Icon icon = null;
