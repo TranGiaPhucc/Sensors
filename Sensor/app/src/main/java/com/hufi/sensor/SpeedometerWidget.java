@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
@@ -24,9 +25,6 @@ public class SpeedometerWidget extends AppWidgetProvider {
                                 int appWidgetId) {
         //CharSequence widgetText = context.getString(R.string.appwidget_text);
         // Construct the RemoteViews object
-
-        LocalBroadcastManager.getInstance(context)
-                .registerReceiver(messageReceiverGPS, new IntentFilter("gps"));
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.speedometer_widget);
         views.setTextViewText(R.id.appwidget_text, text);
@@ -53,9 +51,27 @@ public class SpeedometerWidget extends AppWidgetProvider {
         // Enter relevant functionality for when the last widget is disabled
     }
 
-/*    @Override
+    @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
+
+        double accuracy = intent.getDoubleExtra("accuracy", 0);
+        double time = intent.getDoubleExtra("time", 0);
+        double deltaTime = intent.getDoubleExtra("deltaTime", 0);
+        double speed = intent.getDoubleExtra("speed", 0);
+        double speedCalc = intent.getDoubleExtra("speedCalc", 0);
+        double maxSpeed = intent.getDoubleExtra("maxSpeed", 0);
+        double maxSpeedCalc = intent.getDoubleExtra("maxSpeedCalc", 0);
+        double avgSpeed = intent.getDoubleExtra("avgSpeed", 0);
+        double avgSpeedCalc = intent.getDoubleExtra("avgSpeedCalc", 0);
+        int length = intent.getIntExtra("length", 0);
+        String district = intent.getStringExtra("district");
+
+        String contentText = speed + " (" + speedCalc + ") km/h (" + time + "s)     Acc: " + accuracy + " m     Freq: " + deltaTime + " s" +
+                "\n\nMax:          " + maxSpeed + " (" + maxSpeedCalc + ") km/h\nAverage:   " + avgSpeed + " (" + avgSpeedCalc + ") km/h\nLength:     " + length + " m" +
+                "\n\n" + district;
+
+        text = contentText;
 
         Bundle extras = intent.getExtras();
         if(extras!=null) {
@@ -65,38 +81,5 @@ public class SpeedometerWidget extends AppWidgetProvider {
 
             onUpdate(context, appWidgetManager, appWidgetIds);
         }
-    }*/
-
-    private BroadcastReceiver messageReceiverGPS = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            // Extract data included in the Intent
-            double accuracy = intent.getDoubleExtra("accuracy", 0);
-            double time = intent.getDoubleExtra("time", 0);
-            double deltaTime = intent.getDoubleExtra("deltaTime", 0);
-            double speed = intent.getDoubleExtra("speed", 0);
-            double speedCalc = intent.getDoubleExtra("speedCalc", 0);
-            double maxSpeed = intent.getDoubleExtra("maxSpeed", 0);
-            double maxSpeedCalc = intent.getDoubleExtra("maxSpeedCalc", 0);
-            double avgSpeed = intent.getDoubleExtra("avgSpeed", 0);
-            double avgSpeedCalc = intent.getDoubleExtra("avgSpeedCalc", 0);
-            int length = intent.getIntExtra("length", 0);
-            String district = intent.getStringExtra("district");
-
-            String contentText = speed + " (" + speedCalc + ") km/h (" + time + "s)     Acc: " + accuracy + " m     Freq: " + deltaTime + " s" +
-                    "\n\nMax:          " + maxSpeed + " (" + maxSpeedCalc + ") km/h\nAverage:   " + avgSpeed + " (" + avgSpeedCalc + ") km/h\nLength:     " + length + " m" +
-                    "\n\n" + district;
-
-            text = contentText;
-
-            Bundle extras = intent.getExtras();
-            if(extras!=null) {
-                AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-                ComponentName thisAppWidget = new ComponentName(context.getPackageName(), SpeedometerWidget.class.getName());
-                int[] appWidgetIds = appWidgetManager.getAppWidgetIds(thisAppWidget);
-
-                onUpdate(context, appWidgetManager, appWidgetIds);
-            }
-        }
-    };
+    }
 }

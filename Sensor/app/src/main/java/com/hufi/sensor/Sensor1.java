@@ -348,6 +348,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         }
         else district = "Không tìm thấy thông tin vị trí.";
 
+        //Send data to MainActivity.class
         Intent intent = new Intent("gps");
         // Adding some data
         intent.putExtra("accuracy", accuracyS);
@@ -364,6 +365,27 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
 
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
+        //Send data to widget
+        Intent intentWidget = new Intent(this, SpeedometerWidget.class);
+        intentWidget.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+        intentWidget.putExtra("accuracy", accuracyS);
+        intentWidget.putExtra("deltaTime", deltaTimeS);
+        intentWidget.putExtra("time", timeS);
+        intentWidget.putExtra("speed", speedS);
+        intentWidget.putExtra("speedCalc", speedCalcS);
+        intentWidget.putExtra("maxSpeed", maxSpeedS);
+        intentWidget.putExtra("maxSpeedCalc", maxCalcSpeedS);
+        intentWidget.putExtra("avgSpeed", avgSpeedS);
+        intentWidget.putExtra("avgSpeedCalc", avgCalcSpeedS);
+        intentWidget.putExtra("length", (int) lengthCalcS);
+        intentWidget.putExtra("district", district);
+        int[] ids = AppWidgetManager.getInstance(this).getAppWidgetIds(new ComponentName(this, SpeedometerWidget.class));
+        if(ids != null && ids.length > 0) {
+            intentWidget.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
+            sendBroadcast(intentWidget);
+        }
+
+        //Continue code
         String title = "";
         if (gpsSatellites == true)
             title = "(" + timeS + "s) " + speedS + " km/h        Satellites: " + strInUse + "/" + strInView;
