@@ -9,7 +9,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -21,38 +21,47 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Sensor">
+        <receiver
+            android:name=".SpeedometerWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/speedometer_widget_info" />
+        </receiver>
+
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"
             android:value="ocr" />
+
         <service
             android:name=".ScreenTranslateOCR"
             android:enabled="true"
-            android:exported="true" >
-        </service>
+            android:exported="true"></service>
         <service
             android:name=".SpeechToText"
             android:enabled="true"
-            android:exported="true" >
-        </service>
+            android:exported="true"></service>
         <service
             android:name=".InternetSpeedMeter"
             android:enabled="true"
-            android:exported="true" >
-        </service>
+            android:exported="true"></service>
         <service
             android:name=".Sensor2"
             android:enabled="true"
-            android:exported="true" >
-        </service>
+            android:exported="true"></service>
         <service
             android:name=".Sensor1"
             android:enabled="true"
-            android:exported="true" >
-        </service>
+            android:exported="true"></service>
         <service
             android:name=".Sensor"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
+
         <receiver
             android:name=".AutoStart"
             android:enabled="false"
@@ -64,6 +73,7 @@
                 <action android:name="android.intent.action.REBOOT" />
             </intent-filter>
         </receiver>
+
         <activity
             android:name=".MainActivity"
             android:exported="true">

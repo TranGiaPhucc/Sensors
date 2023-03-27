@@ -5,6 +5,8 @@ import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -73,10 +75,11 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     double maxSpeed = 0;
     double maxCalcSpeed = 0;
     double avgCalcSpeed = 0;
+    double deltaTime = 0;
+    double time = 0;
 
     double totalSpeedCalc = 0;
     double lengthCalc = 0;
-    double lengthTest = 0;
     double length = 0;
     double avgSpeed = 0;
     int countSpeed = 0;
@@ -147,9 +150,9 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         }
 
         if (modeGPS)
-            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 0, this);
         else
-            lm.requestLocationUpdates(LocationManager.FUSED_PROVIDER, 0, 0, this);
+            lm.requestLocationUpdates(LocationManager.FUSED_PROVIDER, 1, 0, this);
 
         if (gpsSatellites == true)
             lm.addGpsStatusListener(this);
@@ -203,26 +206,6 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     }
 
     private void getSpeed(Location location){
-        double newTime= System.currentTimeMillis();
-        newLat = location.getLatitude();
-        newLon = location.getLongitude();
-
-        double distance = calculationBydistance(newLat,newLon,oldLat,oldLon);
-
-        double timeDifferent = (newTime - curTime) / 1000;    //Convert milis to s
-
-        if (oldLat != 0 || oldLon != 0) {
-            speedCalc = distance / timeDifferent;
-            if (speedCalc >= 1) {
-                lengthCalc += distance;
-                totalSpeedCalc += speedCalc;
-            }
-        }
-
-        curTime = newTime;
-        oldLat = newLat;
-        oldLon = newLon;
-
         if (location.hasSpeed()) {
             //Toast.makeText(this, "true  lat: " + newLat + " long: " + newLon, Toast.LENGTH_SHORT).show();
             speed = location.getSpeed();
@@ -238,6 +221,28 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
             oldLat = newLat;
             oldLon = newLon;*/
         }
+
+        double newTime= System.currentTimeMillis();
+        newLat = location.getLatitude();
+        newLon = location.getLongitude();
+
+        double distance = calculationBydistance(newLat,newLon,oldLat,oldLon);
+
+        double timeDifferent = (newTime - curTime) / 1000;    //Convert milis to s
+
+        if (oldLat != 0 || oldLon != 0) {
+            double tempSpeedCalc = distance / timeDifferent;
+            deltaTime = timeDifferent;
+            if (tempSpeedCalc < speed + 20) {
+                speedCalc = tempSpeedCalc;
+                lengthCalc += distance;
+                totalSpeedCalc += speedCalc;
+            }
+        }
+
+        curTime = newTime;
+        oldLat = newLat;
+        oldLon = newLon;
     }
 
     private double calculationBydistance(double lat1, double lon1, double lat2, double lon2){
@@ -279,7 +284,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         if (speed > maxSpeed)
             maxSpeed = speed;
 
-        if (speedCalc > maxCalcSpeed)
+        if (speedCalc > maxCalcSpeed && speedCalc < speed + 20)
             maxCalcSpeed = speedCalc;
 
         double speedS = (double)Math.round(speed * 3.6 * 10) / 10;
@@ -288,35 +293,34 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         if (gpsSatellites == true) {
             if (inUse > 0) {
                 countSpeed += 1;
+                time += deltaTime;
                 length += speed;        //length (meter)
-                avgSpeed = length / (double) countSpeed;
-                //length += speed / (double) 3600;
-
-                avgCalcSpeed = totalSpeedCalc / (double) countSpeed;
-
-                lengthTest += speed * (1.0 + speedS / 100);
+                if (time > 0) {
+                    avgSpeed = length / (double) countSpeed;
+                    avgCalcSpeed = totalSpeedCalc / time;
+                }
             }
         }
         else {
             countSpeed += 1;
+            time += deltaTime;
             length += speed;        //length (meter)
-            avgSpeed = length / (double) countSpeed;
-            //length += speed / (double) 3600;
-
-            avgCalcSpeed = totalSpeedCalc / (double) countSpeed;
-
-            lengthTest += speed * (1.0 + speedS / 100 / 2);
+            if (time > 0) {
+                avgSpeed = length / (double) countSpeed;
+                avgCalcSpeed = totalSpeedCalc / time;
+            }
         }
 
         double accuracyS = (double)Math.round(accuracy * 10) / 10;
         double maxSpeedS = (double)Math.round(maxSpeed * 3.6 * 10) / 10;
         double avgSpeedS = (double)Math.round(avgSpeed * 3.6 * 10) / 10;
-        double lengthS = (double)Math.round(length * 10) / 10;   //1.2 is just cablirated, simulated as acceleration
-        double lengthTestS = (double)Math.round(lengthTest);
 
         double maxCalcSpeedS = (double)Math.round(maxCalcSpeed * 3.6 * 10) / 10;
         double avgCalcSpeedS = (double)Math.round(avgCalcSpeed * 3.6 * 10) / 10;
         double lengthCalcS = (double)Math.round(lengthCalc);
+
+        double timeS = (double)Math.round(time * 10) / 10;
+        double deltaTimeS = (double)Math.round(deltaTime * 10) / 10;
 
         if (inUse > 0)
             strInUse = "In used";
@@ -333,7 +337,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
             addresses = geocoder.getFromLocation(newLat, newLon, 1);
         } catch (IOException | IllegalStateException e) {
             //e.printStackTrace();
-            Toast.makeText(this, "" + e, Toast.LENGTH_LONG).show();
+            //Toast.makeText(this, "" + e, Toast.LENGTH_LONG).show();
         }
 
         if (addresses != null && addresses.size() > 0) {
@@ -342,11 +346,13 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
             for (int i = 0; i < addresses.size(); i++)
                 district += addresses.get(0).getAddressLine(i);
         }
+        else district = "Không tìm thấy thông tin vị trí.";
 
         Intent intent = new Intent("gps");
         // Adding some data
         intent.putExtra("accuracy", accuracyS);
-        intent.putExtra("time", countSpeed);
+        intent.putExtra("deltaTime", deltaTimeS);
+        intent.putExtra("time", timeS);
         intent.putExtra("speed", speedS);
         intent.putExtra("speedCalc", speedCalcS);
         intent.putExtra("maxSpeed", maxSpeedS);
@@ -360,12 +366,12 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
 
         String title = "";
         if (gpsSatellites == true)
-            title = "(" + countSpeed + "s) " + speedS + " km/h" + "        Satellites: " + strInUse + "/" + strInView;
+            title = "(" + timeS + "s) " + speedS + " km/h        Satellites: " + strInUse + "/" + strInView;
         else
-            title = speedS + " (" + speedCalcS +") km/h" + " (" + countSpeed + " s)        " + "Accuracy: " + accuracyS + " m";
+            title = speedS + " (" + speedCalcS +") km/h (" + timeS + "s)     Acc: " + accuracyS + " m     Freq: " + deltaTimeS + " s";
             //title = speedS + " km/h" + " (" + countSpeed + "s) " + "        (debug)Total: " + totalSpeedS + " km/h";
 
-        String content = "Max:          " + maxSpeedS + " (" + maxCalcSpeedS +") km/h\nAverage:   "  + avgSpeedS + " (" + avgCalcSpeedS +") km/h\nLength:     " + (int) lengthCalcS + " m";
+        String content = "Max:          " + maxSpeedS + " (" + maxCalcSpeedS + ") km/h\nAverage:   "  + avgSpeedS + " (" + avgCalcSpeedS +") km/h\nLength:     " + (int) lengthCalcS + " m";
         String contentText = district;
         String expandText = "\n" + contentText + "\n\n" + content;
 

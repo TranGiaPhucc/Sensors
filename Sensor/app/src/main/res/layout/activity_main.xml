@@ -15,12 +15,13 @@
         android:layout_height="match_parent" >
 
         <CheckBox
+            android:id="@+id/cbxLight"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_below="@id/lbGPS"
             android:layout_marginLeft="30dp"
-            android:layout_marginTop="30dp"
-            android:text="Light Sensor"
-            android:id="@+id/cbxLight"/>
+            android:layout_marginTop="10dp"
+            android:text="Light Sensor" />
 
         <CheckBox
             android:layout_width="wrap_content"
@@ -32,21 +33,20 @@
             android:id="@+id/cbxGravity"/>
 
         <CheckBox
+            android:id="@+id/cbxInternet"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_below="@id/cbxGravity"
             android:layout_marginLeft="30dp"
             android:layout_marginTop="10dp"
-            android:layout_below="@id/cbxGravity"
-            android:text="Internet Speed Meter"
-            android:id="@+id/cbxInternet"/>
+            android:text="Internet Speed Meter" />
 
         <CheckBox
             android:id="@+id/cbxAcc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/cbxInternet"
             android:layout_marginLeft="30dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="30dp"
             android:text="Speedometer (GPS)" />
 
         <CheckBox
@@ -54,9 +54,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
-            android:layout_below="@id/cbxInternet"
+            android:layout_marginTop="30dp"
             android:layout_marginRight="30dp"
-            android:layout_marginTop="10dp"
             android:checked="true"
             android:text="GPS Mode" />
 
@@ -73,7 +72,7 @@
             android:id="@+id/cbxSpeechToText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/lbGPS"
+            android:layout_below="@id/cbxInternet"
             android:layout_marginLeft="30dp"
             android:layout_marginTop="10dp"
             android:text="Speech To Text" />
@@ -91,7 +90,7 @@
             android:id="@+id/btnSpeech"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/lbGPS"
+            android:layout_below="@id/cbxInternet"
             android:layout_alignParentRight="true"
             android:layout_marginTop="10dp"
             android:layout_marginRight="30dp"
@@ -145,8 +144,8 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="30dp"
-            android:layout_marginRight="30dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
             android:layout_below="@id/cbxAcc"
             android:text=""
             android:enabled="true"

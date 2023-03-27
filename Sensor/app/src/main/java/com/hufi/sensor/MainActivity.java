@@ -42,6 +42,8 @@ import android.util.SparseArray;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.translation.TranslationContext;
+import android.view.translation.Translator;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -84,7 +86,6 @@ public class MainActivity extends AppCompatActivity {
 
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(messageReceiverGPS, new IntentFilter("gps"));
-
 
         t1 = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
@@ -411,7 +412,8 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             // Extract data included in the Intent
             double accuracy = intent.getDoubleExtra("accuracy", 0);
-            int time = intent.getIntExtra("time", 0);
+            double time = intent.getDoubleExtra("time", 0);
+            double deltaTime = intent.getDoubleExtra("deltaTime", 0);
             double speed = intent.getDoubleExtra("speed", 0);
             double speedCalc = intent.getDoubleExtra("speedCalc", 0);
             double maxSpeed = intent.getDoubleExtra("maxSpeed", 0);
@@ -421,7 +423,7 @@ public class MainActivity extends AppCompatActivity {
             int length = intent.getIntExtra("length", 0);
             String district = intent.getStringExtra("district");
 
-            String contentText = "    " + speed + " (" + speedCalc + ") " + "km/h (" + time + " s)        Accuracy: " + accuracy + " m" +
+            String contentText = speed + " (" + speedCalc + ") km/h (" + time + "s)     Acc: " + accuracy + " m     Freq: " + deltaTime + " s" +
                     "\n\nMax:          " + maxSpeed + " (" + maxSpeedCalc + ") km/h\nAverage:   " + avgSpeed + " (" + avgSpeedCalc + ") km/h\nLength:     " + length + " m" +
                     "\n\n" + district;
 
