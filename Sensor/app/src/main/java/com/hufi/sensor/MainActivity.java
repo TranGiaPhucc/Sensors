@@ -68,7 +68,7 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     CheckBox cbxLight, cbxAcc, cbxGravity, cbxInternet, cbxSatellites, cbxSpeechToText, cbxScreenTranslateOCR, cbxGPSMode;
-    Button btnSpeech, btnScreenshot;
+    Button btnSpeech, btnScreenshot, btnQRCode;
     TextToSpeech t1;
     ImageView imgScreenshot;
     TextView txtOCR, lbGPS;
@@ -109,6 +109,7 @@ public class MainActivity extends AppCompatActivity {
         imgScreenshot = findViewById(R.id.imgScreenshot);
         txtOCR = findViewById(R.id.txtOCR);
         lbGPS = findViewById(R.id.lbGPS);
+        btnQRCode = findViewById(R.id.btnQRCode);
 
         if (!isMyServiceRunning(Sensor.class))
         {
@@ -153,6 +154,31 @@ public class MainActivity extends AppCompatActivity {
         }
         else
             cbxScreenTranslateOCR.setChecked(true);
+
+        btnQRCode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                /*try {
+                    Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+                    intent.putExtra("SCAN_MODE", "QR_CODE_MODE"); // "PRODUCT_MODE for bar codes
+
+                    startActivityForResult(intent, 31);
+                } catch (Exception e) {
+                    Uri marketUri = Uri.parse("market://details?id=com.google.zxing.client.android");
+                    Intent marketIntent = new Intent(Intent.ACTION_VIEW,marketUri);
+                    startActivity(marketIntent);
+                }*/
+                if(Build.VERSION.SDK_INT>= Build.VERSION_CODES.M) {
+                    if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                        String[] permissions = {Manifest.permission.CAMERA};
+                        requestPermissions(permissions, 1);
+                    } else {
+                        Intent intent = new Intent(MainActivity.this, QrCodeScanner.class);
+                        startActivityForResult(intent, 31);
+                    }
+                }
+            }
+        });
 
         btnSpeech.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -394,15 +420,28 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK) {
-            Uri selectedImageUri = data.getData();
-            Bitmap bmp = null;
-            try {
-                //Upload
-                bmp = BitmapFactory.decodeStream(getContentResolver().openInputStream(selectedImageUri));
-                takeScreenshot(bmp);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
+        if (requestCode == 1) {     //Screenshot OCR
+            if (resultCode == RESULT_OK) {
+                Uri selectedImageUri = data.getData();
+                Bitmap bmp = null;
+                try {
+                    //Upload
+                    bmp = BitmapFactory.decodeStream(getContentResolver().openInputStream(selectedImageUri));
+                    takeScreenshot(bmp);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        if (requestCode == 31) {        //QR Code
+            if (resultCode == RESULT_OK) {
+                //String contents = data.getStringExtra("SCAN_RESULT");
+                String contents = data.getStringExtra("qrcode");
+                txtOCR.setText(contents);
+            }
+            if(resultCode == RESULT_CANCELED){
+                //handle cancel
             }
         }
     }

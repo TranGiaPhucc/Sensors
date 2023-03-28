@@ -112,9 +112,20 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/cbxSpeechToText"
             android:layout_alignParentRight="true"
-            android:layout_marginRight="30dp"
             android:layout_marginTop="10dp"
+            android:layout_marginRight="30dp"
             android:text="Screenshot"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btnQRCode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cbxScreenTranslateOCR"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:text="QR Code Scanner"
             android:textAllCaps="false" />
 
         <ImageView
@@ -131,7 +142,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/cbxScreenTranslateOCR"
+            android:layout_below="@id/btnQRCode"
             android:layout_marginLeft="30dp"
             android:layout_marginRight="10dp"
             android:layout_marginTop="10dp"
