@@ -27,7 +27,7 @@ public class SpeedometerWidget extends AppWidgetProvider {
         // Construct the RemoteViews object
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.speedometer_widget);
-        views.setTextViewText(R.id.appwidget_text, text);
+        views.setTextViewText(R.id.speedometerappwidget_text, text);
 
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
@@ -55,23 +55,7 @@ public class SpeedometerWidget extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
 
-        double accuracy = intent.getDoubleExtra("accuracy", 0);
-        double time = intent.getDoubleExtra("time", 0);
-        double deltaTime = intent.getDoubleExtra("deltaTime", 0);
-        double speed = intent.getDoubleExtra("speed", 0);
-        double speedCalc = intent.getDoubleExtra("speedCalc", 0);
-        double maxSpeed = intent.getDoubleExtra("maxSpeed", 0);
-        double maxSpeedCalc = intent.getDoubleExtra("maxSpeedCalc", 0);
-        double avgSpeed = intent.getDoubleExtra("avgSpeed", 0);
-        double avgSpeedCalc = intent.getDoubleExtra("avgSpeedCalc", 0);
-        int length = intent.getIntExtra("length", 0);
-        String district = intent.getStringExtra("district");
-
-        String contentText = speed + " (" + speedCalc + ") km/h (" + time + "s)     Acc: " + accuracy + " m     Freq: " + deltaTime + " s" +
-                "\n\nMax:          " + maxSpeed + " (" + maxSpeedCalc + ") km/h\nAverage:   " + avgSpeed + " (" + avgSpeedCalc + ") km/h\nLength:     " + length + " m" +
-                "\n\n" + district;
-
-        text = contentText;
+        text = intent.getStringExtra("gpsText");
 
         Bundle extras = intent.getExtras();
         if(extras!=null) {

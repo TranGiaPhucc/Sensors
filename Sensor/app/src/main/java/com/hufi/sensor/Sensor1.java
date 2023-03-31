@@ -9,6 +9,7 @@ import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -28,6 +29,7 @@ import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.BatteryManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
@@ -231,13 +233,10 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         double timeDifferent = (newTime - curTime) / 1000;    //Convert milis to s
 
         if (oldLat != 0 || oldLon != 0) {
-            double tempSpeedCalc = distance / timeDifferent;
+            speedCalc = distance / timeDifferent;
             deltaTime = timeDifferent;
-            if (tempSpeedCalc < speed + 20) {
-                speedCalc = tempSpeedCalc;
-                lengthCalc += distance;
-                totalSpeedCalc += speedCalc;
-            }
+            lengthCalc += distance;
+            totalSpeedCalc += speedCalc;
         }
 
         curTime = newTime;
@@ -284,7 +283,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         if (speed > maxSpeed)
             maxSpeed = speed;
 
-        if (speedCalc > maxCalcSpeed && speedCalc < speed + 20)
+        if (speedCalc > maxCalcSpeed)
             maxCalcSpeed = speedCalc;
 
         double speedS = (double)Math.round(speed * 3.6 * 10) / 10;
@@ -348,10 +347,21 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         }
         else district = "Không tìm thấy thông tin vị trí.";
 
+        String title = "";
+        if (gpsSatellites == true)
+            title = "(" + timeS + "s) " + speedS + " km/h        Satellites: " + strInUse + "/" + strInView;
+        else
+            title = speedS + " (" + speedCalcS +") km/h     Acc: " + accuracyS + " m     Time: " + timeS + " (" + deltaTimeS + ") s";
+            //title = speedS + " km/h" + " (" + countSpeed + "s) " + "        (debug)Total: " + totalSpeedS + " km/h";
+
+        String content = "Max:          " + maxSpeedS + " (" + maxCalcSpeedS + ") km/h\nAverage:    "  + avgSpeedS + " (" + avgCalcSpeedS +") km/h\nLength:      " + (int) lengthCalcS + " m";
+        String contentText = district;
+        String expandText = "\n" + contentText + "\n\n" + content;
+
         //Send data to MainActivity.class
         Intent intent = new Intent("gps");
         // Adding some data
-        intent.putExtra("accuracy", accuracyS);
+        /*intent.putExtra("accuracy", accuracyS);
         intent.putExtra("deltaTime", deltaTimeS);
         intent.putExtra("time", timeS);
         intent.putExtra("speed", speedS);
@@ -361,14 +371,16 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         intent.putExtra("avgSpeed", avgSpeedS);
         intent.putExtra("avgSpeedCalc", avgCalcSpeedS);
         intent.putExtra("length", (int) lengthCalcS);
-        intent.putExtra("district", district);
+        intent.putExtra("district", district);*/
+        intent.putExtra("gpsText", title + "\n" + expandText);
 
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
         //Send data to widget
         Intent intentWidget = new Intent(this, SpeedometerWidget.class);
         intentWidget.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-        intentWidget.putExtra("accuracy", accuracyS);
+
+        /*intentWidget.putExtra("accuracy", accuracyS);
         intentWidget.putExtra("deltaTime", deltaTimeS);
         intentWidget.putExtra("time", timeS);
         intentWidget.putExtra("speed", speedS);
@@ -378,25 +390,16 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         intentWidget.putExtra("avgSpeed", avgSpeedS);
         intentWidget.putExtra("avgSpeedCalc", avgCalcSpeedS);
         intentWidget.putExtra("length", (int) lengthCalcS);
-        intentWidget.putExtra("district", district);
+        intentWidget.putExtra("district", district);*/
+        intentWidget.putExtra("gpsText", title + "\n" + expandText);
+
         int[] ids = AppWidgetManager.getInstance(this).getAppWidgetIds(new ComponentName(this, SpeedometerWidget.class));
         if(ids != null && ids.length > 0) {
             intentWidget.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
             sendBroadcast(intentWidget);
         }
 
-        //Continue code
-        String title = "";
-        if (gpsSatellites == true)
-            title = "(" + timeS + "s) " + speedS + " km/h        Satellites: " + strInUse + "/" + strInView;
-        else
-            title = speedS + " (" + speedCalcS +") km/h (" + timeS + "s)     Acc: " + accuracyS + " m     Freq: " + deltaTimeS + " s";
-            //title = speedS + " km/h" + " (" + countSpeed + "s) " + "        (debug)Total: " + totalSpeedS + " km/h";
-
-        String content = "Max:          " + maxSpeedS + " (" + maxCalcSpeedS + ") km/h\nAverage:   "  + avgSpeedS + " (" + avgCalcSpeedS +") km/h\nLength:     " + (int) lengthCalcS + " m";
-        String contentText = district;
-        String expandText = "\n" + contentText + "\n\n" + content;
-
+        //Notification
         Bitmap bitmap = createBitmapFromString(Double.toString(speedS), Double.toString(speedCalcS));
         Icon icon = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

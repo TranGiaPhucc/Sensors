@@ -6,7 +6,7 @@
     android:background="@android:color/transparent">
 
     <TextView
-        android:id="@+id/appwidget_text"
+        android:id="@+id/speedometerappwidget_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="false"
@@ -15,4 +15,5 @@
         android:contentDescription=""
         android:text=""
         android:textSize="12dp" />
+
 </RelativeLayout>

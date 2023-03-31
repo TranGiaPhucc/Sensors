@@ -29,6 +29,7 @@ import android.media.ToneGenerator;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -67,7 +68,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
-    CheckBox cbxLight, cbxAcc, cbxGravity, cbxInternet, cbxSatellites, cbxSpeechToText, cbxScreenTranslateOCR, cbxGPSMode;
+    CheckBox cbxLight, cbxAcc, cbxGravity, cbxInternet, cbxSatellites, cbxSpeechToText, cbxScreenTranslateOCR, cbxGPSMode, cbxBatteryStatus;
     Button btnSpeech, btnScreenshot, btnQRCode;
     TextToSpeech t1;
     ImageView imgScreenshot;
@@ -96,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        cbxBatteryStatus = findViewById(R.id.cbxBatteryStatus);
         cbxGPSMode = findViewById(R.id.cbxGPSMode);
         cbxLight = findViewById(R.id.cbxLight);
         cbxAcc = findViewById(R.id.cbxAcc);
@@ -133,6 +135,13 @@ public class MainActivity extends AppCompatActivity {
         }
         else
             cbxGravity.setChecked(true);
+
+        if (!isMyServiceRunning(BatteryStatus.class))
+        {
+            cbxBatteryStatus.setChecked(false);
+        }
+        else
+            cbxBatteryStatus.setChecked(true);
 
         if (!isMyServiceRunning(InternetSpeedMeter.class))
         {
@@ -320,6 +329,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        cbxBatteryStatus.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (b) {
+                    if (!isMyServiceRunning(BatteryStatus.class))
+                        startService(new Intent(MainActivity.this, BatteryStatus.class));
+                }
+                else
+                    stopService(new Intent(MainActivity.this, BatteryStatus.class));
+            }
+        });
+
         cbxInternet.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -450,7 +471,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             // Extract data included in the Intent
-            double accuracy = intent.getDoubleExtra("accuracy", 0);
+            /*double accuracy = intent.getDoubleExtra("accuracy", 0);
             double time = intent.getDoubleExtra("time", 0);
             double deltaTime = intent.getDoubleExtra("deltaTime", 0);
             double speed = intent.getDoubleExtra("speed", 0);
@@ -464,9 +485,11 @@ public class MainActivity extends AppCompatActivity {
 
             String contentText = speed + " (" + speedCalc + ") km/h (" + time + "s)     Acc: " + accuracy + " m     Freq: " + deltaTime + " s" +
                     "\n\nMax:          " + maxSpeed + " (" + maxSpeedCalc + ") km/h\nAverage:   " + avgSpeed + " (" + avgSpeedCalc + ") km/h\nLength:     " + length + " m" +
-                    "\n\n" + district;
+                    "\n\n" + district;*/
 
-            lbGPS.setText(contentText);
+            String gpsText = intent.getStringExtra("gpsText");
+
+            lbGPS.setText(gpsText);
         }
     };
 }

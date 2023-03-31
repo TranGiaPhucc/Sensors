@@ -97,7 +97,7 @@ public class ScreenTranslateOCR extends Service {
 
             //notificationManager.notify(3, noti.build());
 
-            startForeground(5, noti.build());
+            startForeground(6, noti.build());
         }
     }
 
