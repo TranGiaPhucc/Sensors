@@ -9,7 +9,7 @@ public class AutoStart extends BroadcastReceiver {
 
     public void onReceive(Context context, Intent arg1)
     {
-        Intent intent = new Intent(context, Sensor.class);
+        /*Intent intent = new Intent(context, Sensor.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(intent);
         } else {
@@ -21,9 +21,9 @@ public class AutoStart extends BroadcastReceiver {
             context.startForegroundService(intent1);
         } else {
             context.startService(intent1);
-        }
+        }*/
 
-        Intent intent2 = new Intent(context, Sensor2.class);
+        Intent intent2 = new Intent(context, BatteryStatus.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(intent2);
         } else {

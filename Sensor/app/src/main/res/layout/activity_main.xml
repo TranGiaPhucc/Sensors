@@ -18,7 +18,7 @@
             android:id="@+id/cbxLight"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/lbGPS"
+            android:layout_below="@id/cbxGravity"
             android:layout_marginLeft="30dp"
             android:layout_marginTop="10dp"
             android:text="Light Sensor" />
@@ -27,7 +27,7 @@
             android:id="@+id/cbxGravity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/cbxLight"
+            android:layout_below="@id/cbxBatteryStatus"
             android:layout_marginLeft="30dp"
             android:layout_marginTop="10dp"
             android:text="Battery Temperature" />
@@ -36,16 +36,16 @@
             android:id="@+id/cbxBatteryStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/cbxGravity"
+            android:layout_below="@id/lbGPS"
             android:layout_marginLeft="30dp"
             android:layout_marginTop="10dp"
-            android:text="Battery Status" />
+            android:text="Battery Status (Autostart on start up)" />
 
         <CheckBox
             android:id="@+id/cbxInternet"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/cbxBatteryStatus"
+            android:layout_below="@id/cbxLight"
             android:layout_marginLeft="30dp"
             android:layout_marginTop="10dp"
             android:text="Internet Speed Meter" />
