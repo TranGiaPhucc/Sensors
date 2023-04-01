@@ -70,10 +70,24 @@ public class BatteryStatus extends Service {
 
         BatteryManager batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
 
-        long amp = batteryManager.getLongProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW) / 1000;
-        long battery = batteryManager.getLongProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
+        int amp = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW);
+        int battery = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
+        int level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
 
-        String batteryText = "Battery: " + amp + " µA / " + battery + " µAh";
+        double time = -1;
+
+        String chargeStr = "";
+        if (amp >= 0) {
+            chargeStr = "Discharge: ";
+            time = (double) battery / amp * 60;
+        }
+        else {
+            chargeStr = "Charge: ";
+            double chargeLeft = (double) battery / level * 100;
+            time = (double) -chargeLeft / amp * 60;
+        }
+
+        String batteryText = "Battery: " + amp / 1000 + " mA / " + (double)Math.round((double)battery / 1000 * 10) / 10 + " mAh\n" + chargeStr + Math.round(time) + " minutes";
 
         Intent intentWidget = new Intent(this, BatteryWidget.class);
         intentWidget.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
@@ -85,7 +99,7 @@ public class BatteryStatus extends Service {
             sendBroadcast(intentWidget);
         }
 
-        Bitmap bitmap = createBitmapFromString(String.valueOf(amp), String.valueOf((double)Math.round((double)battery / 1000 * 10) / 10));
+        Bitmap bitmap = createBitmapFromString(String.valueOf(amp / 1000), String.valueOf((double)Math.round((double)battery / 1000 * 10) / 10));
         Icon icon = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             icon = Icon.createWithBitmap(bitmap);
@@ -101,8 +115,8 @@ public class BatteryStatus extends Service {
 
             NotificationCompat.Builder noti = new NotificationCompat.Builder(this, "My notification")
                     //.setContentTitle("Internet Speed Meter" + "     " + connectionType)
-                    .setContentTitle("Current: " + amp + " µA")
-                    .setContentText("Battery left: " + battery + " µAh")
+                    .setContentTitle("Current: " + amp / 1000 + " mA")
+                    .setContentText("Battery left: " + (double)battery / 1000 + " mAh       " + chargeStr + Math.round(time) + " minutes")
                     //builder.setSmallIcon(R.mipmap.ic_launcher_round);
                     .setSmallIcon(IconCompat.createFromIcon(icon))
                     .setAutoCancel(false)
