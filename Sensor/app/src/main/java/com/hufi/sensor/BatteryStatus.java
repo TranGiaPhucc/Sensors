@@ -83,7 +83,7 @@ public class BatteryStatus extends Service {
         }
         else {
             chargeStr = "Charge: ";
-            double chargeLeft = (double) battery / level * 100;
+            double chargeLeft = (double) battery / level * 100 - battery;
             time = (double) -chargeLeft / amp * 60;
         }
 
