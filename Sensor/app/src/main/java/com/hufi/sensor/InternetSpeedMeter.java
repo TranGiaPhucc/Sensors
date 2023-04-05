@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
@@ -14,6 +15,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Icon;
 import android.net.ConnectivityManager;
 import android.net.TrafficStats;
+import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Handler;
@@ -94,8 +96,12 @@ public class InternetSpeedMeter extends Service {
                 {
                     if (is3g)
                         connectionType = "MOBILE";
-                    if (isWifi)
-                        connectionType = "WIFI";
+                    if (isWifi) {
+                        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                        int linkSpeed = wifiManager.getConnectionInfo().getLinkSpeed();
+
+                        connectionType = "WIFI (" + linkSpeed + " Mbps)";
+                    }
                 }
             }
         }, 0, 1000);

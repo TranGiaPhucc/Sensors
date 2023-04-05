@@ -84,7 +84,7 @@ public class SpeechToText extends Service {
     private void start() {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.US);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
         intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, "com.domain.app");
 
         recognizer = SpeechRecognizer
@@ -106,6 +106,7 @@ public class SpeechToText extends Service {
                         t1.speak(match, TextToSpeech.QUEUE_FLUSH, null);
 
                         showNotification();
+                        recognizer.startListening(intent);
                     }
                 }
             }
@@ -113,7 +114,8 @@ public class SpeechToText extends Service {
             @Override
             public void onReadyForSpeech(Bundle params) {
                 System.out.println("Ready for speech");
-                start();
+                voiceDetected = "O";
+                showNotification();
             }
 
             /**
@@ -132,14 +134,15 @@ public class SpeechToText extends Service {
             @Override
             public void onError(int error) {
                 System.err.println("Error listening for speech: " + error);
-                start();
+                voiceDetected = "o";
+                showNotification();
             }
 
             @Override
             public void onBeginningOfSpeech() {
                 System.out.println("Speech starting");
-                voiceDetected = "O";
-                start();
+                voiceDetected = "OO";
+                showNotification();
             }
 
             @Override
@@ -151,6 +154,8 @@ public class SpeechToText extends Service {
             @Override
             public void onEndOfSpeech() {
                 // TODO Auto-generated method stub
+                voiceDetected = "o";
+                showNotification();
             }
 
             @Override

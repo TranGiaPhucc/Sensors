@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
@@ -15,6 +16,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Icon;
 import android.net.ConnectivityManager;
 import android.net.TrafficStats;
+import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Handler;
@@ -68,6 +70,9 @@ public class BatteryStatus extends Service {
         //IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         //Intent batteryStatus = registerReceiver(null, ifilter);
 
+        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        int linkSpeed = wifiManager.getConnectionInfo().getLinkSpeed();
+
         BatteryManager batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
 
         int amp = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW);
@@ -87,7 +92,8 @@ public class BatteryStatus extends Service {
             time = (double) -chargeLeft / amp * 60;
         }
 
-        String batteryText = "Battery: " + amp / 1000 + " mA / " + (double)Math.round((double)battery / 1000 * 10) / 10 + " mAh\n" + chargeStr + Math.round(time) + " minutes";
+        String batteryText = "Battery: " + amp / 1000 + " mA / " + (double)Math.round((double)battery / 1000 * 10) / 10 + " mAh\n" + chargeStr + Math.round(time) + " minutes"
+                + "\nWifi: " + linkSpeed + " Mbps";
 
         Intent intentWidget = new Intent(this, BatteryWidget.class);
         intentWidget.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
