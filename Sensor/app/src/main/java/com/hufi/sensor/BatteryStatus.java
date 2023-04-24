@@ -1,5 +1,6 @@
 package com.hufi.sensor;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -9,9 +10,12 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.Icon;
 import android.net.ConnectivityManager;
@@ -21,16 +25,35 @@ import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.util.Base64;
+import android.view.Gravity;
+import android.view.View;
+import android.view.WindowManager;
+import android.webkit.GeolocationPermissions;
+import android.webkit.WebChromeClient;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.IconCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.regex.Pattern;
 
 public class BatteryStatus extends Service {
-
     private Handler mHandler = new Handler();
 
     public BatteryStatus() {
@@ -50,7 +73,6 @@ public class BatteryStatus extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
         mHandler.postDelayed(mRunnable, 1000);
 
         return super.onStartCommand(intent, flags, startId);
@@ -69,6 +91,8 @@ public class BatteryStatus extends Service {
 
         //IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         //Intent batteryStatus = registerReceiver(null, ifilter);
+
+        double cpu = (double) Math.round((double) takeCurrentCpuFreq(0) / 1024 / 1024 * 100) / 100;
 
         WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         int linkSpeed = wifiManager.getConnectionInfo().getLinkSpeed();
@@ -93,7 +117,7 @@ public class BatteryStatus extends Service {
         }
 
         String batteryText = "Battery: " + amp / 1000 + " mA / " + (double)Math.round((double)battery / 1000 * 10) / 10 + " mAh\n" + chargeStr + Math.round(time) + " minutes"
-                + "\nWifi: " + linkSpeed + " Mbps";
+                + "\nWifi: " + linkSpeed + " Mbps       CPU: " + cpu + "GHz";
 
         Intent intentWidget = new Intent(this, BatteryWidget.class);
         intentWidget.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
@@ -120,7 +144,6 @@ public class BatteryStatus extends Service {
             notificationManager.createNotificationChannel(channel);
 
             NotificationCompat.Builder noti = new NotificationCompat.Builder(this, "My notification")
-                    //.setContentTitle("Internet Speed Meter" + "     " + connectionType)
                     .setContentTitle("Current: " + amp / 1000 + " mA")
                     .setContentText("Battery left: " + (double)battery / 1000 + " mAh       " + chargeStr + Math.round(time) + " minutes")
                     //builder.setSmallIcon(R.mipmap.ic_launcher_round);
@@ -174,5 +197,23 @@ public class BatteryStatus extends Service {
         canvas.drawText(units, width / 2, 90, unitsPaint);
 
         return bitmap;
+    }
+
+    private static int readIntegerFile(String filePath) {
+
+        try {
+            final BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(filePath)), 1000);
+            final String line = reader.readLine();
+            reader.close();
+
+            return Integer.parseInt(line);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private static int takeCurrentCpuFreq(int coreIndex) {
+        return readIntegerFile("/sys/devices/system/cpu/cpu" + coreIndex + "/cpufreq/scaling_cur_freq");
     }
 }

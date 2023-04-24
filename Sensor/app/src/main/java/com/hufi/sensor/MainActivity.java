@@ -68,8 +68,8 @@ import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
-    CheckBox cbxLight, cbxAcc, cbxGravity, cbxInternet, cbxSatellites, cbxSpeechToText, cbxScreenTranslateOCR, cbxGPSMode, cbxBatteryStatus;
-    Button btnSpeech, btnScreenshot, btnQRCode;
+    CheckBox cbxLight, cbxAcc, cbxGravity, cbxInternet, cbxSatellites, cbxSpeechToText, cbxScreenTranslateOCR, cbxGPSMode, cbxBatteryStatus, cbxCPU;
+    Button btnSpeech, btnScreenshot, btnQRCode, btnMaps;
     TextToSpeech t1;
     ImageView imgScreenshot;
     TextView txtOCR, lbGPS;
@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        cbxCPU = findViewById(R.id.cbxCPU);
         cbxBatteryStatus = findViewById(R.id.cbxBatteryStatus);
         cbxGPSMode = findViewById(R.id.cbxGPSMode);
         cbxLight = findViewById(R.id.cbxLight);
@@ -112,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
         txtOCR = findViewById(R.id.txtOCR);
         lbGPS = findViewById(R.id.lbGPS);
         btnQRCode = findViewById(R.id.btnQRCode);
+        btnMaps = findViewById(R.id.btnMaps);
 
         if (!isMyServiceRunning(Sensor.class))
         {
@@ -129,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
             cbxSatellites.setEnabled(false);
         }
 
-        if (!isMyServiceRunning(Sensor2.class))
+        if (!isMyServiceRunning(BatteryTemperature.class))
         {
             cbxGravity.setChecked(false);
         }
@@ -142,6 +144,13 @@ public class MainActivity extends AppCompatActivity {
         }
         else
             cbxBatteryStatus.setChecked(true);
+
+        if (!isMyServiceRunning(CpuStatus.class))
+        {
+            cbxCPU.setChecked(false);
+        }
+        else
+            cbxCPU.setChecked(true);
 
         if (!isMyServiceRunning(InternetSpeedMeter.class))
         {
@@ -186,6 +195,14 @@ public class MainActivity extends AppCompatActivity {
                         startActivityForResult(intent, 31);
                     }
                 }
+            }
+        });
+
+        btnMaps.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, Maps.class);
+                startActivity(intent);
             }
         });
 
@@ -259,6 +276,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        cbxCPU.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (b) {
+                    if (!isMyServiceRunning(CpuStatus.class))
+                        startService(new Intent(MainActivity.this, CpuStatus.class));
+                }
+                else
+                    stopService(new Intent(MainActivity.this, CpuStatus.class));
+            }
+        });
+
         cbxLight.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -321,11 +350,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 if (b) {
-                    if (!isMyServiceRunning(Sensor2.class))
-                        startService(new Intent(MainActivity.this, Sensor2.class));
+                    if (!isMyServiceRunning(BatteryTemperature.class))
+                        startService(new Intent(MainActivity.this, BatteryTemperature.class));
                 }
                 else
-                    stopService(new Intent(MainActivity.this, Sensor2.class));
+                    stopService(new Intent(MainActivity.this, BatteryTemperature.class));
             }
         });
 

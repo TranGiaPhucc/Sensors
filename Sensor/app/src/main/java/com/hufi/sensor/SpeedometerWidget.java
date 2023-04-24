@@ -8,8 +8,11 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Base64;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
@@ -20,6 +23,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
  */
 public class SpeedometerWidget extends AppWidgetProvider {
     String text = "";
+    String image = "";
 
     public void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
@@ -28,6 +32,15 @@ public class SpeedometerWidget extends AppWidgetProvider {
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.speedometer_widget);
         views.setTextViewText(R.id.speedometerappwidget_text, text);
+
+        Bitmap bmp = null;
+        if (image != "" && image != null) {
+            byte[] bytes = Base64.decode(image, Base64.DEFAULT);
+            bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        }
+
+        if (bmp != null)
+            views.setImageViewBitmap(R.id.widget_image, bmp);
 
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
@@ -56,6 +69,7 @@ public class SpeedometerWidget extends AppWidgetProvider {
         super.onReceive(context, intent);
 
         text = intent.getStringExtra("gpsText");
+        image = intent.getStringExtra("webView");
 
         Bundle extras = intent.getExtras();
         if(extras!=null) {

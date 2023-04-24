@@ -16,4 +16,9 @@
         android:text=""
         android:textSize="12dp" />
 
+    <ImageView
+        android:id="@+id/widget_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
 </RelativeLayout>
