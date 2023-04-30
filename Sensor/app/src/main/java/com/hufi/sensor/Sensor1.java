@@ -224,11 +224,24 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
             oldLon = newLon;*/
         }
 
-        double newTime= System.currentTimeMillis();
+        //double newTime = System.currentTimeMillis();
+        double newTime = (double) Math.round(location.getElapsedRealtimeNanos() / 1000000);     //Convert nanos to milis
         newLat = location.getLatitude();
         newLon = location.getLongitude();
 
-        double distance = calculationBydistance(newLat,newLon,oldLat,oldLon);
+        //{Test
+        Location startPoint = new Location("locationA");
+        startPoint.setLatitude(oldLat);
+        startPoint.setLongitude(oldLon);
+
+        Location endPoint = new Location("locationA");
+        endPoint.setLatitude(newLat);
+        endPoint.setLongitude(newLon);
+
+        double distance = startPoint.distanceTo(endPoint);      //meter
+
+        //}
+        //double distance = calculationBydistance(newLat,newLon,oldLat,oldLon);     //meter
 
         double timeDifferent = (newTime - curTime) / 1000;    //Convert milis to s
 
