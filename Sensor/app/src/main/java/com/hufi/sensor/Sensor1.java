@@ -43,9 +43,18 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.graphics.drawable.IconCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.google.android.gms.location.FusedLocationProviderApi;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -79,6 +88,9 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     double avgCalcSpeed = 0;
     double deltaTime = 0;
     double time = 0;
+
+    double bearing = 0;
+    double bearingPrev = 0;
 
     double totalSpeedCalc = 0;
     double lengthCalc = 0;
@@ -225,7 +237,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         }
 
         //double newTime = System.currentTimeMillis();
-        double newTime = (double) Math.round(location.getElapsedRealtimeNanos() / 1000000);     //Convert nanos to milis
+        double newTime = Math.round(location.getElapsedRealtimeNanos() / 1000000);     //Convert nanos to milis
         newLat = location.getLatitude();
         newLon = location.getLongitude();
 
@@ -238,10 +250,14 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         endPoint.setLatitude(newLat);
         endPoint.setLongitude(newLon);
 
-        double distance = startPoint.distanceTo(endPoint);      //meter
-
+        double distance = startPoint.distanceTo(endPoint);      //meter*/
         //}
         //double distance = calculationBydistance(newLat,newLon,oldLat,oldLon);     //meter
+
+        if(location.hasBearing()) {
+            bearing = location.getBearing();
+        }
+        bearingPrev = startPoint.bearingTo(endPoint);
 
         double timeDifferent = (newTime - curTime) / 1000;    //Convert milis to s
 
@@ -331,6 +347,9 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         double avgCalcSpeedS = (double)Math.round(avgCalcSpeed * 3.6 * 10) / 10;
         double lengthCalcS = (double)Math.round(lengthCalc);
 
+        double bearingS = (double)Math.round(bearing);
+        double bearingPrevS = (double)Math.round(bearingPrev);
+
         double timeS = (double)Math.round(time * 10) / 10;
         double deltaTimeS = (double)Math.round(deltaTime * 10) / 10;
 
@@ -369,7 +388,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
 
         String content = "Max:          " + maxSpeedS + " (" + maxCalcSpeedS + ") km/h\nAverage:    "  + avgSpeedS + " (" + avgCalcSpeedS +") km/h\nLength:      " + (int) lengthCalcS + " m";
         String contentText = district;
-        String expandText = "\n" + contentText + "\n\n" + content;
+        String expandText = "\n" + contentText + "\n\n" + "Bearing (from previous location): " + (int) bearingS + " (" + (int) bearingPrevS + ") degree\n\n" + content;
 
         //Send data to MainActivity.class
         Intent intent = new Intent("gps");
