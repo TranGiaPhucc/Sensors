@@ -29,6 +29,7 @@ import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Binder;
 import android.os.Build;
@@ -44,6 +45,16 @@ import androidx.core.graphics.drawable.IconCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 
+import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.io.IOUtils;
+import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.io.output.ByteArrayOutputStream;
+import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpResponse;
+import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.client.HttpClient;
+import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.client.methods.HttpGet;
+import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.client.methods.HttpUriRequest;
+import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.impl.client.DefaultHttpClient;
+import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.impl.client.HttpClientBuilder;
+import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.util.EntityUtils;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -58,6 +69,7 @@ import java.net.URL;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutionException;
 
 public class Sensor1 extends Service implements LocationListener, GpsStatus.Listener {
 
@@ -72,6 +84,8 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     boolean modeGPS = true;
 
     LocationManager lm;
+
+    String weather = "";
 
     //GPS Satellites
     int inUse = 0;
@@ -240,6 +254,9 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         double newTime = Math.round(location.getElapsedRealtimeNanos() / 1000000);     //Convert nanos to milis
         newLat = location.getLatitude();
         newLon = location.getLongitude();
+        
+        if (Math.round(time) % 2 == 0)
+            weather = getWeather(newLat, newLon);
 
         //{Test
         Location startPoint = new Location("locationA");
@@ -388,7 +405,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
 
         String content = "Max:          " + maxSpeedS + " (" + maxCalcSpeedS + ") km/h\nAverage:    "  + avgSpeedS + " (" + avgCalcSpeedS +") km/h\nLength:      " + (int) lengthCalcS + " m";
         String contentText = district;
-        String expandText = "\n" + contentText + "\n\n" + "Bearing (from previous location): " + (int) bearingS + " (" + (int) bearingPrevS + ") degree\n\n" + content;
+        String expandText = "\n" + contentText + "\n\n" + "Bearing (from previous location): " + (int) bearingS + " (" + (int) bearingPrevS + ") degree\n\n" + content + "\n\n" + weather;
 
         //Send data to MainActivity.class
         Intent intent = new Intent("gps");
@@ -493,5 +510,90 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         return bitmap;
     }
 
+    private String getWeather(double lat, double lon) {
+        String api_key = "213ee2ea20ed0756ba8cf2498077e023";
 
+        //String urlString = "https://api.openweathermap.org/data/2.5/weather?q=London,uk&APPID=213ee2ea20ed0756ba8cf2498077e023";
+        //"https://api.openweathermap.org/data/2.5/weather?q=" + city + "&APPID=" + api_key;
+        String urlString = "https://api.openweathermap.org/data/2.5/weather?lat=" + lat + "&lon=" + lon + "&APPID=" + api_key;
+
+        String text = "";
+
+        /*HttpClient httpclient = HttpClientBuilder.create().build();
+        HttpUriRequest httpUriRequest = new HttpGet(url);
+        HttpResponse response = null;
+        try {
+            response = httpclient.execute(httpUriRequest);      //crash
+        } catch (IOException e) {
+            e.printStackTrace();
+        }*/
+
+        String response = "";
+        try {
+            response = new HTTPReqTask().execute(urlString).get();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        JSONObject js = null;
+        try {
+            js = new JSONObject(response);
+
+            int clouds = js.getJSONObject("clouds").getInt("all");
+
+            String placeName = js.getString("name");
+            double temp = (double) Math.round((js.getJSONObject("main").getDouble("temp") - 273.15) * 10) / 10;      //Kelvin to C
+            double feellike = (double) Math.round((js.getJSONObject("main").getDouble("feels_like") - 273.15) * 10) / 10;
+            int humid = js.getJSONObject("main").getInt("humidity");
+            int pressure = js.getJSONObject("main").getInt("pressure");
+            double wind = js.getJSONObject("wind").getDouble("speed");
+            int wind_dir = js.getJSONObject("wind").getInt("deg");
+
+            text = "Mây: " + clouds + "%\nVị trí: " + placeName + "\nNhiệt độ: " + temp + " oC\nCảm giác như: " + feellike + " oC\n\nĐộ ẩm: " + humid + "%\nÁp suất: " + pressure + " hPa" +
+                    "\nTốc độ gió: " + wind + " m/s      Hướng gió: " + wind_dir + " độ";
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "" + e, Toast.LENGTH_LONG).show();
+        }
+
+        return text + "\n\n\n" + response;
+    }
+
+    private class HTTPReqTask extends AsyncTask<String, String, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            URL url = null;
+            try {
+                url = new URL(params[0]);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+            HttpURLConnection urlConnection = null;
+            try {
+                urlConnection = (HttpURLConnection) url.openConnection();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            String result = "";
+            try {
+                InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+                result = IOUtils.toString(in);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                urlConnection.disconnect();
+            }
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            //Do anything with response..
+        }
+    }
 }
