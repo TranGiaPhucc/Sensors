@@ -254,8 +254,8 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         double newTime = Math.round(location.getElapsedRealtimeNanos() / 1000000);     //Convert nanos to milis
         newLat = location.getLatitude();
         newLon = location.getLongitude();
-        
-        if (Math.round(time) % 2 == 0)
+
+        if (Math.round(time / 10) % 2 == 0)
             weather = getWeather(newLat, newLon);
 
         //{Test
