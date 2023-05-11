@@ -47,6 +47,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.io.IOUtils;
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.io.output.ByteArrayOutputStream;
+import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpEntity;
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpResponse;
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.client.HttpClient;
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.client.methods.HttpGet;
@@ -66,7 +67,10 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
@@ -255,8 +259,10 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         newLat = location.getLatitude();
         newLon = location.getLongitude();
 
-        if (Math.round(time / 10) % 2 == 0)
+        int freqUpdate = (int) Math.round(time) / 100 % 2;
+        if (freqUpdate == 0) {
             weather = getWeather(newLat, newLon);
+        }
 
         //{Test
         Location startPoint = new Location("locationA");
@@ -513,24 +519,15 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     private String getWeather(double lat, double lon) {
         String api_key = "213ee2ea20ed0756ba8cf2498077e023";
 
-        //String urlString = "https://api.openweathermap.org/data/2.5/weather?q=London,uk&APPID=213ee2ea20ed0756ba8cf2498077e023";
-        //"https://api.openweathermap.org/data/2.5/weather?q=" + city + "&APPID=" + api_key;
-        String urlString = "https://api.openweathermap.org/data/2.5/weather?lat=" + lat + "&lon=" + lon + "&APPID=" + api_key;
+        String urlWeather = "https://api.openweathermap.org/data/2.5/weather?lat=" + lat + "&lon=" + lon + "&lang=vi&APPID=" + api_key;
+        String urlForecase = "https://api.openweathermap.org/data/2.5/forecast?lat=" + lat + "&lon=" + lon + "&lang=vi&appid=" + api_key;
 
         String text = "";
 
-        /*HttpClient httpclient = HttpClientBuilder.create().build();
-        HttpUriRequest httpUriRequest = new HttpGet(url);
-        HttpResponse response = null;
+        //Current weather
+        String responseWeather = "";
         try {
-            response = httpclient.execute(httpUriRequest);      //crash
-        } catch (IOException e) {
-            e.printStackTrace();
-        }*/
-
-        String response = "";
-        try {
-            response = new HTTPReqTask().execute(urlString).get();
+            responseWeather = new HTTPReqTask().execute(urlWeather).get();
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -539,33 +536,119 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
 
         JSONObject js = null;
         try {
-            js = new JSONObject(response);
+            String weatherDescription = "";
 
-            int clouds = js.getJSONObject("clouds").getInt("all");
+            js = new JSONObject(responseWeather);
+            JSONArray weatherArray = js.optJSONArray("weather");
 
-            String placeName = js.getString("name");
-            double temp = (double) Math.round((js.getJSONObject("main").getDouble("temp") - 273.15) * 10) / 10;      //Kelvin to C
-            double feellike = (double) Math.round((js.getJSONObject("main").getDouble("feels_like") - 273.15) * 10) / 10;
-            int humid = js.getJSONObject("main").getInt("humidity");
-            int pressure = js.getJSONObject("main").getInt("pressure");
-            double wind = js.getJSONObject("wind").getDouble("speed");
-            int wind_dir = js.getJSONObject("wind").getInt("deg");
+            for (int i=0; i < weatherArray.length(); i++){
+                JSONObject w = weatherArray.optJSONObject(i);
+                weatherDescription = w.optString("description");
+            }
 
-            text = "Mây: " + clouds + "%\nVị trí: " + placeName + "\nNhiệt độ: " + temp + " oC\nCảm giác như: " + feellike + " oC\n\nĐộ ẩm: " + humid + "%\nÁp suất: " + pressure + " hPa" +
-                    "\nTốc độ gió: " + wind + " m/s      Hướng gió: " + wind_dir + " độ";
+            double rain1h = 0;
+            double rain3h = 0;
+            if (js.optJSONObject("rain") != null) {
+                rain1h = js.optJSONObject("rain").optDouble("1h");
+                rain3h = js.optJSONObject("rain").optDouble("3h");
+            }
+
+            String placeName = js.optString("name");
+            int clouds = js.optJSONObject("clouds").optInt("all");
+            double temp = (double) Math.round((js.optJSONObject("main").optDouble("temp") - 273.15) * 10) / 10;      //Kelvin to C
+            double feellike = (double) Math.round((js.optJSONObject("main").optDouble("feels_like") - 273.15) * 10) / 10;      //Kelvin to C
+            int humid = js.optJSONObject("main").optInt("humidity");
+            int pressure = js.optJSONObject("main").optInt("pressure");
+            double wind = (double) Math.round(js.optJSONObject("wind").optDouble("speed") * 3.6 * 1000) / 1000;
+            int wind_dir = js.optJSONObject("wind").optInt("deg");
+            long sunrise = js.optJSONObject("sys").optLong("sunrise");
+            long sunset = js.optJSONObject("sys").optLong("sunset");
+            long datetime = js.optLong("dt");
+
+            DateFormat df = new SimpleDateFormat("HH:mm:ss");
+            String datetimeDate = df.format(new java.util.Date(datetime * 1000L));
+            String sunriseDate = df.format(new java.util.Date(sunrise * 1000L));
+            String sunsetDate = df.format(new java.util.Date(sunset * 1000L));
+
+            text = "Vị trí: " + placeName + "\nThời tiết: " + weatherDescription + "\nMây: " + clouds + "%       Mưa 1h: " + rain1h + " mm       Mưa 3h: " + rain3h + " mm" +
+                    "\nNhiệt độ: " + temp + "°C      Cảm giác như: " + feellike + "°C" +
+                    "\n\nĐộ ẩm: " + humid + "%                  Áp suất: " + pressure + " hPa" + "\nTốc độ gió: " + wind + " km/h      Hướng gió: " + wind_dir + "°" +
+                    "\n\nThời điểm cập nhật: " + datetimeDate + "\nMặt trời mọc: " + sunriseDate + "       Mặt trời lặn: " + sunsetDate;
 
         } catch (JSONException e) {
             e.printStackTrace();
             Toast.makeText(this, "" + e, Toast.LENGTH_LONG).show();
         }
 
-        return text + "\n\n\n" + response;
+        //Forecase weather
+        String responseForecase = "";
+        try {
+            responseForecase = new HTTPReqTask().execute(urlForecase).get();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        js = null;
+        try {
+            js = new JSONObject(responseForecase);
+
+            text += "\n\nKhả năng có mưa: ";
+            JSONArray listArray = js.optJSONArray("list");
+
+            int arrayLength = 9;
+            if (listArray.length() < arrayLength)
+                arrayLength = listArray.length();
+
+            for (int i=0; i < arrayLength; i++){
+                JSONObject l = listArray.optJSONObject(i);
+
+                long datetime = l.optLong("dt");
+                double temp = (double) Math.round((l.optJSONObject("main").optDouble("temp") - 273.15) * 10) / 10;      //Kelvin to C
+
+                String weatherDescription = "";
+                JSONArray weatherArray = l.optJSONArray("weather");
+                for (int j=0; j < weatherArray.length(); j++){
+                    JSONObject w = weatherArray.optJSONObject(j);
+                    weatherDescription = w.optString("description");
+                }
+
+                DateFormat df = new SimpleDateFormat("dd/MM HH:mm");
+                String datetimeDate = df.format(new java.util.Date(datetime * 1000L));
+
+                int pop = (int) Math.round(l.getDouble("pop") * 100);      //Probability of precipitation
+                double rain3h = 0;
+                if (l.optJSONObject("rain") != null)
+                    rain3h = l.optJSONObject("rain").optDouble("3h");
+
+                if (i == 0)
+                    text += pop + "%\n";
+
+                text += "\n     " + datetimeDate + "   " + temp + "°C  " + pop + "%    " + rain3h + " mm   " + weatherDescription;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "" + e, Toast.LENGTH_LONG).show();
+        }
+
+        //return
+        return text;
     }
 
     private class HTTPReqTask extends AsyncTask<String, String, String> {
         @Override
         protected String doInBackground(String... params) {
-            URL url = null;
+            HttpClient httpclient = HttpClientBuilder.create().build();
+            HttpUriRequest httpUriRequest = new HttpGet(params[0]);
+            HttpResponse response = null;
+            try {
+                response = httpclient.execute(httpUriRequest);      //crash
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            /*URL url = null;
             try {
                 url = new URL(params[0]);
             } catch (MalformedURLException e) {
@@ -576,17 +659,23 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
                 urlConnection = (HttpURLConnection) url.openConnection();
             } catch (IOException e) {
                 e.printStackTrace();
-            }
+            }*/
 
             String result = "";
             try {
-                InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+                /*InputStream in = new BufferedInputStream(urlConnection.getInputStream());
                 result = IOUtils.toString(in);
+                in.close();*/
+
+                HttpEntity entity = response.getEntity();
+                result = EntityUtils.toString(entity);
+
             } catch (IOException e) {
                 e.printStackTrace();
-            } finally {
-                urlConnection.disconnect();
             }
+            /*finally {
+                urlConnection.disconnect();
+            }*/
             return result;
         }
 
