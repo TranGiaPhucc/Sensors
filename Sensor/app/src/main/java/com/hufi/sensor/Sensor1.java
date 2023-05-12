@@ -260,7 +260,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         newLon = location.getLongitude();
 
         int freqUpdate = (int) Math.round(time) / 100 % 2;
-        if (freqUpdate == 0) {
+        if (freqUpdate == 0 && CheckConnection.haveNetworkConnection(this)) {
             weather = getWeather(newLat, newLon);
         }
 
