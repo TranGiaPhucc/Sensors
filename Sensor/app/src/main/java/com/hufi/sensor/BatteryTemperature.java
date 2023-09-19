@@ -84,7 +84,7 @@ public class BatteryTemperature extends Service {
         double value = (double)Math.round(temp * 10) / 10;
         String contentText = "Temperature: "  + value + " °C";
 
-        Bitmap bitmap = createBitmapFromString(Double.toString(value), "°C");
+        Bitmap bitmap = createBitmapFromString(Integer.toString((int) value), "°C");
         Icon icon = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             icon = Icon.createWithBitmap(bitmap);

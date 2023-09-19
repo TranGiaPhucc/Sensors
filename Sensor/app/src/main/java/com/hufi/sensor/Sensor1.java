@@ -66,6 +66,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -338,9 +339,6 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         if (speedCalc > maxCalcSpeed)
             maxCalcSpeed = speedCalc;
 
-        double speedS = (double)Math.round(speed * 3.6 * 10) / 10;
-        double speedCalcS = (double)Math.round(speedCalc * 3.6 * 10) / 10;
-
         if (gpsSatellites == true) {
             if (inUse > 0) {
                 countSpeed += 1;
@@ -361,6 +359,9 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
                 avgCalcSpeed = totalSpeedCalc / time;
             }
         }
+
+        double speedS = (double)Math.round(speed * 3.6);
+        double speedCalcS = (double)Math.round(speedCalc * 3.6);
 
         double accuracyS = (double)Math.round(accuracy * 10) / 10;
         double maxSpeedS = (double)Math.round(maxSpeed * 3.6 * 10) / 10;
@@ -411,7 +412,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
 
         String content = "Max:          " + maxSpeedS + " (" + maxCalcSpeedS + ") km/h\nAverage:    "  + avgSpeedS + " (" + avgCalcSpeedS +") km/h\nLength:      " + (int) lengthCalcS + " m";
         String contentText = district;
-        String expandText = "\n" + contentText + "\n\n" + "Bearing (from previous location): " + (int) bearingS + " (" + (int) bearingPrevS + ") degree\n\n" + content + "\n\n" + weather;
+        String expandText = "\n" + contentText + "\n\n" + "Bearing (from previous location): " + (int) bearingS + " (" + (int) bearingPrevS + ") degrees\n\n" + content + "\n\n" + weather;
 
         //Send data to MainActivity.class
         Intent intent = new Intent("gps");
@@ -455,7 +456,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         }
 
         //Notification
-        Bitmap bitmap = createBitmapFromString(Double.toString(speedS), Double.toString(speedCalcS));
+        Bitmap bitmap = createBitmapFromString(Integer.toString((int) speedS), Integer.toString((int) speedCalcS));
         Icon icon = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             icon = Icon.createWithBitmap(bitmap);
@@ -639,16 +640,16 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     private class HTTPReqTask extends AsyncTask<String, String, String> {
         @Override
         protected String doInBackground(String... params) {
-            HttpClient httpclient = HttpClientBuilder.create().build();
+            /*HttpClient httpclient = HttpClientBuilder.create().build();
             HttpUriRequest httpUriRequest = new HttpGet(params[0]);
             HttpResponse response = null;
             try {
-                response = httpclient.execute(httpUriRequest);      //crash
+                response = httpclient.execute(httpUriRequest);
             } catch (IOException e) {
                 e.printStackTrace();
-            }
+            }*/
 
-            /*URL url = null;
+            URL url = null;
             try {
                 url = new URL(params[0]);
             } catch (MalformedURLException e) {
@@ -657,25 +658,32 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
             HttpURLConnection urlConnection = null;
             try {
                 urlConnection = (HttpURLConnection) url.openConnection();
-            } catch (IOException e) {
+                urlConnection.setConnectTimeout(5000);
+            } catch (SocketTimeoutException e) {
                 e.printStackTrace();
-            }*/
-
-            String result = "";
-            try {
-                /*InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-                result = IOUtils.toString(in);
-                in.close();*/
-
-                HttpEntity entity = response.getEntity();
-                result = EntityUtils.toString(entity);
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            /*finally {
-                urlConnection.disconnect();
-            }*/
+
+            String result = "";
+
+            if (urlConnection != null) {
+                try {
+                    InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+                    result = IOUtils.toString(in);
+                    in.close();
+
+                    /*HttpEntity entity = response.getEntity();
+                    result = EntityUtils.toString(entity);*/
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                finally {
+                    urlConnection.disconnect();
+                }
+            }
+
             return result;
         }
 

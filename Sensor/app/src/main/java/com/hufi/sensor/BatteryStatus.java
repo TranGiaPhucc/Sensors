@@ -129,7 +129,7 @@ public class BatteryStatus extends Service {
             sendBroadcast(intentWidget);
         }
 
-        Bitmap bitmap = createBitmapFromString(String.valueOf(amp / 1000), String.valueOf((double)Math.round((double)battery / 1000 * 10) / 10));
+        Bitmap bitmap = createBitmapFromString(String.valueOf(amp / 1000), String.valueOf(Math.round((double)battery / 1000)));
         Icon icon = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             icon = Icon.createWithBitmap(bitmap);

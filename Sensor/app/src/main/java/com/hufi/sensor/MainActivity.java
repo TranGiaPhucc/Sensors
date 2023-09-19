@@ -304,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 if (b) {
-                    if(Build.VERSION.SDK_INT>= Build.VERSION_CODES.M){
+                    /*if(Build.VERSION.SDK_INT>= Build.VERSION_CODES.M){
                         if(checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                             String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
                             requestPermissions(permissions,1);
@@ -336,6 +336,13 @@ public class MainActivity extends AppCompatActivity {
                                 //cbxSatellites.setVisibility(View.INVISIBLE);
                             }
                         }
+                    }*/
+
+                    if (!isMyServiceRunning(Sensor1.class)) {
+                        Intent intent = new Intent(MainActivity.this, Sensor1.class);
+                        intent.putExtra("gpsSatellites", gpsSatellites);
+                        intent.putExtra("modeGPS", modeGPS);
+                        startService(intent);
                     }
                 }
                 else {
