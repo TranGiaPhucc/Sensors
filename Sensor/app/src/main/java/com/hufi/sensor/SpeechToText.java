@@ -89,6 +89,7 @@ public class SpeechToText extends Service {
 
         recognizer = SpeechRecognizer
                 .createSpeechRecognizer(this);
+
         RecognitionListener listener = new RecognitionListener() {
             @Override
             public void onResults(Bundle results) {
@@ -96,17 +97,19 @@ public class SpeechToText extends Service {
                         .getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                 if (voiceResults == null) {
                     System.out.println("No voice results");
-                    voiceDetected = "o";
+                    voiceDetected = "null";
                 } else {
                     System.out.println("Printing matches: ");
                     for (String match : voiceResults) {
                         System.out.println(match);
-                        Toast.makeText(getApplicationContext(), match, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), match, Toast.LENGTH_LONG).show();
                         voiceDetected = "o";
                         t1.speak(match, TextToSpeech.QUEUE_FLUSH, null);
 
                         showNotification();
-                        recognizer.startListening(intent);
+
+                        //recognizer.startListening(intent);
+                        start();
                     }
                 }
             }
@@ -114,7 +117,7 @@ public class SpeechToText extends Service {
             @Override
             public void onReadyForSpeech(Bundle params) {
                 System.out.println("Ready for speech");
-                voiceDetected = "O";
+                voiceDetected = "R";
                 showNotification();
             }
 
@@ -129,19 +132,22 @@ public class SpeechToText extends Service {
              *  ERROR_RECOGNIZER_BUSY = 8;
              *  ERROR_INSUFFICIENT_PERMISSIONS = 9;
              *
-             * @param error code is defined in SpeechRecognizer
-             */
+             * @param error code is defined in SpeechRecognizer */
+
             @Override
             public void onError(int error) {
                 System.err.println("Error listening for speech: " + error);
-                voiceDetected = "o";
+                voiceDetected = "err";
                 showNotification();
+
+                start();
             }
 
             @Override
             public void onBeginningOfSpeech() {
                 System.out.println("Speech starting");
-                voiceDetected = "OO";
+                voiceDetected = "S";
+                Toast.makeText(getApplicationContext(), "Start recording voice", Toast.LENGTH_LONG).show();
                 showNotification();
             }
 
@@ -154,7 +160,7 @@ public class SpeechToText extends Service {
             @Override
             public void onEndOfSpeech() {
                 // TODO Auto-generated method stub
-                voiceDetected = "o";
+                voiceDetected = "E";
                 showNotification();
             }
 
@@ -176,6 +182,7 @@ public class SpeechToText extends Service {
 
             }
         };
+
         recognizer.setRecognitionListener(listener);
         recognizer.startListening(intent);
 

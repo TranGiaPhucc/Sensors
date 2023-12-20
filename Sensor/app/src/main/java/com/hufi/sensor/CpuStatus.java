@@ -1,5 +1,6 @@
 package com.hufi.sensor;
 
+import android.app.ActivityManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
@@ -24,6 +25,10 @@ import androidx.core.graphics.drawable.IconCompat;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class CpuStatus extends Service {
 
@@ -66,9 +71,26 @@ public class CpuStatus extends Service {
         //IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         //Intent batteryStatus = registerReceiver(null, ifilter);
 
-        double cpu = (double) Math.round((double) takeCurrentCpuFreq(0) / 1024 / 1024 * 100) / 100;
+        ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
+        ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        activityManager.getMemoryInfo(mi);
 
-        Bitmap bitmap = createBitmapFromString(String.valueOf(cpu), "GHz");
+        double usedRAM = (double) mi.totalMem - mi.availMem;
+
+        //Percentage can be calculated for API 16+
+        int percentUsedRAM = (int) Math.round(usedRAM / (double)mi.totalMem * 100);
+
+        double cpu = (double) Math.round((double) takeCurrentCpuFreq(0) / 1024 / 1024 * 100) / 100;
+        double ram = (double) Math.round(usedRAM / 1024 / 1024 / 1024 * 100) / 100;
+        double maxram = (double) Math.round((double) mi.totalMem / 1024 / 1024 / 1024 * 100) / 100;
+        double threshold = (double) Math.round((double) (mi.totalMem - mi.threshold) / 1024 / 1024 / 1024 * 100) / 100;
+
+        String lowMemory = "no";
+        if (mi.lowMemory)
+            lowMemory = "yes";
+        else lowMemory = "no";
+
+        Bitmap bitmap = createBitmapFromString(String.valueOf(ram), String.valueOf(cpu));
         Icon icon = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             icon = Icon.createWithBitmap(bitmap);
@@ -83,10 +105,12 @@ public class CpuStatus extends Service {
             notificationManager.createNotificationChannel(channel);
 
             NotificationCompat.Builder noti = new NotificationCompat.Builder(this, "My notification")
-                    .setContentTitle("CPU: " + cpu + " GHz")
+                    .setContentTitle("CPU: " + cpu + " GHz\t\tRAM: " + ram + "/" + maxram + "(" + percentUsedRAM +"%) GB\t\t" + threshold + "\t\t" + lowMemory)
                     .setContentText("")
                     //builder.setSmallIcon(R.mipmap.ic_launcher_round);
                     .setSmallIcon(IconCompat.createFromIcon(icon))
+                    //.setStyle(new NotificationCompat.BigTextStyle()
+                    //        .bigText(content))
                     .setAutoCancel(false)
                     .setOnlyAlertOnce(true);
 
@@ -109,7 +133,7 @@ public class CpuStatus extends Service {
     }
 
     private Bitmap createBitmapFromString(String speed, String units) {
-
+        //textsize: 55 + 45 = 95
         Paint paint = new Paint();
         paint.setAntiAlias(true);
         paint.setTextSize(55);
@@ -117,7 +141,7 @@ public class CpuStatus extends Service {
 
         Paint unitsPaint = new Paint();
         unitsPaint.setAntiAlias(true);
-        unitsPaint.setTextSize(40); // size is in pixels
+        unitsPaint.setTextSize(47); // size is in pixels
         unitsPaint.setTextAlign(Paint.Align.CENTER);
 
         Rect textBounds = new Rect();

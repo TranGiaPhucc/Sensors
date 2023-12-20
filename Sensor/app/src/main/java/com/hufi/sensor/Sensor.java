@@ -47,7 +47,7 @@ public class Sensor extends Service implements SensorEventListener {
 
     public void onSensorChanged(SensorEvent event) {
 
-        if (event.sensor.getType() != android.hardware.Sensor.TYPE_LIGHT) return;
+        //if (event.sensor.getType() != android.hardware.Sensor.TYPE_LIGHT) return;
         lightValue = (int) event.values[0];
 
         showNotification();
@@ -57,7 +57,7 @@ public class Sensor extends Service implements SensorEventListener {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
-        light = sensorManager.getDefaultSensor(android.hardware.Sensor.TYPE_LIGHT);
+        light = sensorManager.getDefaultSensor(android.hardware.Sensor.TYPE_LIGHT);         //TYPE_LIGHT
 
         if (light != null) {
             sensorManager.registerListener(this, light, SensorManager.SENSOR_DELAY_NORMAL);

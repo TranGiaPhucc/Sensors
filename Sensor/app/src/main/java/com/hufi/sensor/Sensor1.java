@@ -66,7 +66,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -77,7 +76,7 @@ import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 public class Sensor1 extends Service implements LocationListener, GpsStatus.Listener {
-
+    public String dist = "";
 
     //private SensorManager sensorManager;
     //private Sensor light;
@@ -107,6 +106,8 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     double avgCalcSpeed = 0;
     double deltaTime = 0;
     double time = 0;
+
+    int timeWeatherPer100Secs = 0;
 
     double bearing = 0;
     double bearingPrev = 0;
@@ -185,7 +186,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         if (modeGPS)
             lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 0, this);
         else
-            lm.requestLocationUpdates(LocationManager.FUSED_PROVIDER, 1, 0, this);
+            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1, 0, this);
 
         if (gpsSatellites == true)
             lm.addGpsStatusListener(this);
@@ -260,9 +261,12 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         newLat = location.getLatitude();
         newLon = location.getLongitude();
 
-        int freqUpdate = (int) Math.round(time) / 100 % 2;
-        if (freqUpdate == 0 && CheckConnection.haveNetworkConnection(this)) {
-            weather = getWeather(newLat, newLon);
+        if (!modeGPS) {
+            int freqUpdate = (int) Math.round(time) / 100;
+            if ((time == 0 || freqUpdate > timeWeatherPer100Secs) && CheckConnection.haveNetworkConnection(this)) {
+                timeWeatherPer100Secs = freqUpdate;
+                weather = getWeather(newLat, newLon);
+            }
         }
 
         //{Test
@@ -339,6 +343,9 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         if (speedCalc > maxCalcSpeed)
             maxCalcSpeed = speedCalc;
 
+        double speedS = (double)Math.round(speed * 3.6 * 10) / 10;
+        double speedCalcS = (double)Math.round(speedCalc * 3.6 * 10) / 10;
+
         if (gpsSatellites == true) {
             if (inUse > 0) {
                 countSpeed += 1;
@@ -359,9 +366,6 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
                 avgCalcSpeed = totalSpeedCalc / time;
             }
         }
-
-        double speedS = (double)Math.round(speed * 3.6);
-        double speedCalcS = (double)Math.round(speedCalc * 3.6);
 
         double accuracyS = (double)Math.round(accuracy * 10) / 10;
         double maxSpeedS = (double)Math.round(maxSpeed * 3.6 * 10) / 10;
@@ -403,6 +407,11 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         }
         else district = "Không tìm thấy thông tin vị trí.";
 
+        if (!district.equals(dist)) {
+            dist = district;
+            Toast.makeText(getApplicationContext(), dist, Toast.LENGTH_SHORT).show();
+        }
+
         String title = "";
         if (gpsSatellites == true)
             title = "(" + timeS + "s) " + speedS + " km/h        Satellites: " + strInUse + "/" + strInView;
@@ -412,7 +421,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
 
         String content = "Max:          " + maxSpeedS + " (" + maxCalcSpeedS + ") km/h\nAverage:    "  + avgSpeedS + " (" + avgCalcSpeedS +") km/h\nLength:      " + (int) lengthCalcS + " m";
         String contentText = district;
-        String expandText = "\n" + contentText + "\n\n" + "Bearing (from previous location): " + (int) bearingS + " (" + (int) bearingPrevS + ") degrees\n\n" + content + "\n\n" + weather;
+        String expandText = "\n" + contentText + "\n\n" + "Bearing (from previous location): " + (int) bearingS + " (" + (int) bearingPrevS + ") degree\n\n" + content + "\n\n" + weather;
 
         //Send data to MainActivity.class
         Intent intent = new Intent("gps");
@@ -488,7 +497,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     }
 
     private Bitmap createBitmapFromString(String speed, String units) {
-
+        //textsize: 55 + 45 = 95
         Paint paint = new Paint();
         paint.setAntiAlias(true);
         paint.setTextSize(55);
@@ -496,7 +505,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
 
         Paint unitsPaint = new Paint();
         unitsPaint.setAntiAlias(true);
-        unitsPaint.setTextSize(40); // size is in pixels
+        unitsPaint.setTextSize(47); // size is in pixels
         unitsPaint.setTextAlign(Paint.Align.CENTER);
 
         Rect textBounds = new Rect();
@@ -640,16 +649,16 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     private class HTTPReqTask extends AsyncTask<String, String, String> {
         @Override
         protected String doInBackground(String... params) {
-            /*HttpClient httpclient = HttpClientBuilder.create().build();
+            HttpClient httpclient = HttpClientBuilder.create().build();
             HttpUriRequest httpUriRequest = new HttpGet(params[0]);
             HttpResponse response = null;
             try {
-                response = httpclient.execute(httpUriRequest);
+                response = httpclient.execute(httpUriRequest);      //crash
             } catch (IOException e) {
                 e.printStackTrace();
-            }*/
+            }
 
-            URL url = null;
+            /*URL url = null;
             try {
                 url = new URL(params[0]);
             } catch (MalformedURLException e) {
@@ -658,32 +667,25 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
             HttpURLConnection urlConnection = null;
             try {
                 urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setConnectTimeout(5000);
-            } catch (SocketTimeoutException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
+            }*/
+
+            String result = "";
+            try {
+                /*InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+                result = IOUtils.toString(in);
+                in.close();*/
+
+                HttpEntity entity = response.getEntity();
+                result = EntityUtils.toString(entity);
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-            String result = "";
-
-            if (urlConnection != null) {
-                try {
-                    InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-                    result = IOUtils.toString(in);
-                    in.close();
-
-                    /*HttpEntity entity = response.getEntity();
-                    result = EntityUtils.toString(entity);*/
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                finally {
-                    urlConnection.disconnect();
-                }
-            }
-
+            /*finally {
+                urlConnection.disconnect();
+            }*/
             return result;
         }
 

@@ -79,12 +79,14 @@ public class BatteryTemperature extends Service {
 
 
         Intent intent = this.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        //double temp = ((float) intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE,0)) / 10;
+
         double temp = ((float) intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE,0)) / 10;
 
         double value = (double)Math.round(temp * 10) / 10;
         String contentText = "Temperature: "  + value + " °C";
 
-        Bitmap bitmap = createBitmapFromString(Integer.toString((int) value), "°C");
+        Bitmap bitmap = createBitmapFromString(Double.toString(value), "°C");
         Icon icon = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             icon = Icon.createWithBitmap(bitmap);

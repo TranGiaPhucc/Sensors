@@ -23,7 +23,14 @@ public class AutoStart extends BroadcastReceiver {
             context.startService(intent1);
         }*/
 
-        Intent intent2 = new Intent(context, BatteryStatus.class);
+        /*Intent intent2 = new Intent(context, BatteryStatus.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent2);
+        } else {
+            context.startService(intent2);
+        }*/
+
+        Intent intent2 = new Intent(context, CpuStatus.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(intent2);
         } else {

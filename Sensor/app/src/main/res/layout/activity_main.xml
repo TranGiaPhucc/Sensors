@@ -48,7 +48,7 @@
             android:layout_below="@id/lbGPS"
             android:layout_marginLeft="30dp"
             android:layout_marginTop="10dp"
-            android:text="Battery Status (Autostart on start up)" />
+            android:text="Battery Status" />
 
         <CheckBox
             android:id="@+id/cbxInternet"
@@ -65,7 +65,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="30dp"
             android:layout_marginTop="30dp"
-            android:text="Speedometer (GPS)" />
+            android:text="Speedometer" />
 
         <CheckBox
             android:id="@+id/cbxGPSMode"
@@ -113,6 +113,19 @@
             android:layout_marginTop="10dp"
             android:layout_marginRight="30dp"
             android:text="Maps"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btnClearCache"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cbxCPU"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="30dp"
+            android:enabled="false"
+            android:visibility="gone"
+            android:text="Clear cache"
             android:textAllCaps="false" />
 
         <Button
@@ -169,17 +182,17 @@
             android:id="@+id/imgScreenshot" />
 
         <TextView
+            android:id="@+id/txtOCR"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/btnQRCode"
             android:layout_marginLeft="30dp"
-            android:layout_marginRight="10dp"
             android:layout_marginTop="10dp"
+            android:layout_marginRight="10dp"
             android:enabled="true"
-            android:textIsSelectable="true"
             android:focusable="true"
             android:longClickable="true"
-            android:id="@+id/txtOCR" />
+            android:textIsSelectable="true" />
 
         <TextView
             android:layout_width="wrap_content"

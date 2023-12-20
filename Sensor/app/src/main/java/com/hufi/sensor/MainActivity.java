@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.Manifest;
@@ -62,6 +63,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.List;
@@ -69,7 +71,7 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     CheckBox cbxLight, cbxAcc, cbxGravity, cbxInternet, cbxSatellites, cbxSpeechToText, cbxScreenTranslateOCR, cbxGPSMode, cbxBatteryStatus, cbxCPU;
-    Button btnSpeech, btnScreenshot, btnQRCode, btnMaps;
+    Button btnSpeech, btnScreenshot, btnQRCode, btnMaps, btnClearCache;
     TextToSpeech t1;
     ImageView imgScreenshot;
     TextView txtOCR, lbGPS;
@@ -114,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
         lbGPS = findViewById(R.id.lbGPS);
         btnQRCode = findViewById(R.id.btnQRCode);
         btnMaps = findViewById(R.id.btnMaps);
+        btnClearCache = findViewById(R.id.btnClearCache);
 
         if (!isMyServiceRunning(Sensor.class))
         {
@@ -195,6 +198,13 @@ public class MainActivity extends AppCompatActivity {
                         startActivityForResult(intent, 31);
                     }
                 }
+            }
+        });
+
+        btnClearCache.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
             }
         });
 
@@ -304,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 if (b) {
-                    /*if(Build.VERSION.SDK_INT>= Build.VERSION_CODES.M){
+                    if(Build.VERSION.SDK_INT>= Build.VERSION_CODES.M){
                         if(checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                             String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
                             requestPermissions(permissions,1);
@@ -336,13 +346,6 @@ public class MainActivity extends AppCompatActivity {
                                 //cbxSatellites.setVisibility(View.INVISIBLE);
                             }
                         }
-                    }*/
-
-                    if (!isMyServiceRunning(Sensor1.class)) {
-                        Intent intent = new Intent(MainActivity.this, Sensor1.class);
-                        intent.putExtra("gpsSatellites", gpsSatellites);
-                        intent.putExtra("modeGPS", modeGPS);
-                        startService(intent);
                     }
                 }
                 else {

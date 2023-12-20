@@ -100,7 +100,7 @@ public class BatteryStatus extends Service {
         BatteryManager batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
 
         int amp = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW);
-        int battery = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
+        int battery = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000;
         int level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
 
         double time = -1;
@@ -108,15 +108,19 @@ public class BatteryStatus extends Service {
         String chargeStr = "";
         if (amp >= 0) {
             chargeStr = "Discharge: ";
-            time = (double) battery / amp * 60;
+            if (amp != 0)
+                time = (double) battery / amp;
+            else time = 0;
         }
         else {
             chargeStr = "Charge: ";
             double chargeLeft = (double) battery / level * 100 - battery;
-            time = (double) -chargeLeft / amp * 60;
+            if (amp != 0)
+                time = chargeLeft / amp;
+            else time = 0;
         }
 
-        String batteryText = "Battery: " + amp / 1000 + " mA / " + (double)Math.round((double)battery / 1000 * 10) / 10 + " mAh\n" + chargeStr + Math.round(time) + " minutes"
+        String batteryText = "Battery: " + amp + " mA / " + Math.round((double)battery) + " mAh\n" + chargeStr + (double) Math.round(time * 10) / 10 + " hours"
                 + "\nWifi: " + linkSpeed + " Mbps       CPU: " + cpu + "GHz";
 
         Intent intentWidget = new Intent(this, BatteryWidget.class);
@@ -129,7 +133,7 @@ public class BatteryStatus extends Service {
             sendBroadcast(intentWidget);
         }
 
-        Bitmap bitmap = createBitmapFromString(String.valueOf(amp / 1000), String.valueOf(Math.round((double)battery / 1000)));
+        Bitmap bitmap = createBitmapFromString(String.valueOf((double) Math.round(time * 10) / 10), String.valueOf(Math.round((double) battery)));
         Icon icon = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             icon = Icon.createWithBitmap(bitmap);
@@ -144,8 +148,8 @@ public class BatteryStatus extends Service {
             notificationManager.createNotificationChannel(channel);
 
             NotificationCompat.Builder noti = new NotificationCompat.Builder(this, "My notification")
-                    .setContentTitle("Current: " + amp / 1000 + " mA")
-                    .setContentText("Battery left: " + (double)battery / 1000 + " mAh       " + chargeStr + Math.round(time) + " minutes")
+                    .setContentTitle("Time: " + (double) Math.round(time * 10) / 10 + " hours")
+                    .setContentText("Battery left: " + Math.round((double)battery) + " mAh       " + chargeStr + amp + " mA")
                     //builder.setSmallIcon(R.mipmap.ic_launcher_round);
                     .setSmallIcon(IconCompat.createFromIcon(icon))
                     .setAutoCancel(false)
