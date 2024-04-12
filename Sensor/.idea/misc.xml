@@ -3,9 +3,11 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Android apps/Sensor/app/src/main/res/layout/activity_diachi.xml" value="0.18645833333333334" />
         <entry key="..\:/Android apps/Sensor/app/src/main/res/layout/activity_main.xml" value="0.25" />
         <entry key="..\:/Android apps/Sensor/app/src/main/res/layout/activity_maps.xml" value="0.18645833333333334" />
         <entry key="..\:/Android apps/Sensor/app/src/main/res/layout/battery_widget.xml" value="0.18645833333333334" />
+        <entry key="..\:/Android apps/Sensor/app/src/main/res/layout/list_bookmark.xml" value="0.18645833333333334" />
         <entry key="..\:/Android apps/Sensor/app/src/main/res/layout/speedometer_widget.xml" value="0.18645833333333334" />
       </map>
     </option>

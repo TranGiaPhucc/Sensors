@@ -69,6 +69,7 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -410,6 +411,13 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         if (!district.equals(dist)) {
             dist = district;
             Toast.makeText(getApplicationContext(), dist, Toast.LENGTH_SHORT).show();
+
+            DateFormat df = new SimpleDateFormat("dd/MM HH:mm:ss");
+            String date = df.format(Calendar.getInstance().getTime());
+            DiaChi d = new DiaChi(date + " (" + speedS + " km/h)", dist);
+
+            Database db = new Database(getApplicationContext());
+            db.insertDiaChi(d);
         }
 
         String title = "";

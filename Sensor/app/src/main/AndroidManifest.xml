@@ -115,6 +115,10 @@
         </receiver>
 
         <activity
+            android:name=".DiaChiActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false" />
+        <activity
             android:name=".Maps"
             android:configChanges="orientation|screenSize"
             android:exported="true" />

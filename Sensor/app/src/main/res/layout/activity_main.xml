@@ -116,6 +116,17 @@
             android:textAllCaps="false" />
 
         <Button
+            android:id="@+id/btnDiaChi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cbxCPU"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="30dp"
+            android:text="History"
+            android:textAllCaps="false" />
+
+        <Button
             android:id="@+id/btnClearCache"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -146,7 +157,16 @@
             android:layout_below="@id/cbxSpeechToText"
             android:layout_marginLeft="30dp"
             android:layout_marginTop="10dp"
+            android:visibility="gone"
             android:text="Screen Translate OCR" />
+
+        <Spinner
+            android:id="@+id/spnLanguage"
+            android:layout_width="150dp"
+            android:layout_height="40dp"
+            android:layout_below="@id/cbxSpeechToText"
+            android:layout_marginLeft="30dp"
+            android:layout_marginTop="10dp" />
 
         <Button
             android:id="@+id/btnScreenshot"
@@ -156,14 +176,14 @@
             android:layout_alignParentRight="true"
             android:layout_marginTop="10dp"
             android:layout_marginRight="30dp"
-            android:text="Screenshot"
+            android:text="Image OCR"
             android:textAllCaps="false" />
 
         <Button
             android:id="@+id/btnQRCode"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/cbxScreenTranslateOCR"
+            android:layout_below="@id/spnLanguage"
             android:layout_marginTop="10dp"
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
