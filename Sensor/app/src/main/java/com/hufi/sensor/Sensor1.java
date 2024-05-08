@@ -396,7 +396,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         try {
             addresses = geocoder.getFromLocation(newLat, newLon, 1);
         } catch (IOException | IllegalStateException e) {
-            //e.printStackTrace();
+            e.printStackTrace();
             //Toast.makeText(this, "" + e, Toast.LENGTH_LONG).show();
         }
 
@@ -595,7 +595,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
 
         } catch (JSONException e) {
             e.printStackTrace();
-            Toast.makeText(this, "" + e, Toast.LENGTH_LONG).show();
+            //Toast.makeText(this, "" + e, Toast.LENGTH_LONG).show();
         }
 
         //Forecase weather
@@ -647,7 +647,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
             }
         } catch (JSONException e) {
             e.printStackTrace();
-            Toast.makeText(this, "" + e, Toast.LENGTH_LONG).show();
+            //Toast.makeText(this, "" + e, Toast.LENGTH_LONG).show();
         }
 
         //return

@@ -7,6 +7,7 @@ import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -34,15 +35,18 @@ import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.graphics.drawable.IconCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
 import java.util.Locale;
 
 public class SpeechToText extends Service {
+    String language = "";
 
     String voiceDetected = "o";     //o: false     O: true
+    String status = "";
 
-    private TextToSpeech t1;
+    //private TextToSpeech t1;
     private SpeechRecognizer recognizer;
 
     public SpeechToText() {
@@ -57,8 +61,8 @@ public class SpeechToText extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        t1.stop();
-        t1.shutdown();
+        //t1.stop();
+        //t1.shutdown();
         recognizer.stopListening();
         recognizer.cancel();
         recognizer.destroy();
@@ -67,14 +71,21 @@ public class SpeechToText extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        t1 = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+        language = intent.getStringExtra("language");
+
+        /*t1 = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
                 if(status != TextToSpeech.ERROR) {
-                    t1.setLanguage(Locale.JAPAN);
+                    if (language.equals("Japanese"))
+                        t1.setLanguage(Locale.JAPAN);
+                    else if (language.equals("Korean"))
+                        t1.setLanguage(Locale.KOREAN);
+                    else
+                        t1.setLanguage(Locale.ENGLISH);
                 }
             }
-        });
+        });*/
 
         start();
 
@@ -83,9 +94,21 @@ public class SpeechToText extends Service {
 
     private void start() {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        if (language.equals("Japanese")) {
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "ja-JP");
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.JAPAN.toString());
+        }
+        else if (language.equals("Korean")) {
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "ko-KR");
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.KOREAN.toString());
+        }
+        else {
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        }
+        //intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+        intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, "com.domain.app");
+        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, this.getPackageName());   //"com.domain.app"
 
         recognizer = SpeechRecognizer
                 .createSpeechRecognizer(this);
@@ -104,11 +127,15 @@ public class SpeechToText extends Service {
                         System.out.println(match);
                         Toast.makeText(getApplicationContext(), match, Toast.LENGTH_LONG).show();
                         voiceDetected = "o";
-                        t1.speak(match, TextToSpeech.QUEUE_FLUSH, null);
+                        //t1.speak(match, TextToSpeech.QUEUE_FLUSH, null);      //speak sometime cause speechrecognizer hear and loop over and over
 
                         showNotification();
 
-                        //recognizer.startListening(intent);
+                        Intent it = new Intent("speech");
+                        it.putExtra("speech", match);
+                        LocalBroadcastManager.getInstance(SpeechToText.this).sendBroadcast(it);
+
+                        recognizer.destroy();
                         start();
                     }
                 }
@@ -118,6 +145,7 @@ public class SpeechToText extends Service {
             public void onReadyForSpeech(Bundle params) {
                 System.out.println("Ready for speech");
                 voiceDetected = "R";
+                status = "Ready";
                 showNotification();
             }
 
@@ -138,8 +166,41 @@ public class SpeechToText extends Service {
             public void onError(int error) {
                 System.err.println("Error listening for speech: " + error);
                 voiceDetected = "err";
-                showNotification();
+                status = "Error:";
 
+                switch (error) {
+                    case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
+                        status += " network timeout";
+                        break;
+                    case SpeechRecognizer.ERROR_NETWORK:
+                        status += " network" ;
+                        //toast("Please check data bundle or network settings");
+                        return;
+                    case SpeechRecognizer.ERROR_AUDIO:
+                        status += " audio";
+                        break;
+                    case SpeechRecognizer.ERROR_SERVER:
+                        status += " server";
+                        break;
+                    case SpeechRecognizer.ERROR_CLIENT:
+                        status += " client";
+                        break;
+                    case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
+                        status += " speech time out" ;
+                        break;
+                    case SpeechRecognizer.ERROR_NO_MATCH:
+                        status += " no match" ;
+                        break;
+                    case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
+                        status += " recogniser busy" ;
+                        break;
+                    case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
+                        status += " insufficient permissions" ;
+                        break;
+                }
+
+                showNotification();
+                recognizer.destroy();
                 start();
             }
 
@@ -147,7 +208,8 @@ public class SpeechToText extends Service {
             public void onBeginningOfSpeech() {
                 System.out.println("Speech starting");
                 voiceDetected = "S";
-                Toast.makeText(getApplicationContext(), "Start recording voice", Toast.LENGTH_LONG).show();
+                status = "Start recording voice";
+                //Toast.makeText(getApplicationContext(), status, Toast.LENGTH_LONG).show();
                 showNotification();
             }
 
@@ -161,6 +223,7 @@ public class SpeechToText extends Service {
             public void onEndOfSpeech() {
                 // TODO Auto-generated method stub
                 voiceDetected = "E";
+                status = "End";
                 showNotification();
             }
 
@@ -192,8 +255,8 @@ public class SpeechToText extends Service {
     private void showNotification() {
         // TODO Auto-generated method stub
 
-        String title = "Speech to text";
-        String contentText = "";
+        String title = "Speech to text" + " (" + language + ")";
+        String contentText = status;
 
         Bitmap bitmap = createBitmapFromString(voiceDetected, "o");
         Icon icon = null;

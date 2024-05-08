@@ -72,6 +72,9 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(messageReceiverGPS, new IntentFilter("gps"));
 
+        LocalBroadcastManager.getInstance(this)
+                .registerReceiver(messageReceiverSpeechToText, new IntentFilter("speech"));
+
         t1 = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -164,9 +167,9 @@ public class MainActivity extends AppCompatActivity {
             cbxScreenTranslateOCR.setChecked(true);
 
         List<String> list = new ArrayList<>();
+        list.add("Default");
         list.add("Japanese");
         list.add("Korean");
-        list.add("Latin");
         ArrayAdapter spinnerAdapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, list);
         spnLanguage.setAdapter(spinnerAdapter);
 
@@ -178,12 +181,12 @@ public class MainActivity extends AppCompatActivity {
                 else if (list.get(i).equals("Korean"))
                     language = "Korean";
                 else
-                    language = "Latin";
+                    language = "Default";
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
-                language = "Latin";
+                language = "Default";
             }
         });
 
@@ -295,7 +298,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         else if (!isMyServiceRunning(SpeechToText.class)) {
                             Intent intent = new Intent(MainActivity.this, SpeechToText.class);
-                            //intent.putExtra("speech", speech);
+                            intent.putExtra("language", language);
                             startService(intent);
                         }
                     }
@@ -573,6 +576,16 @@ public class MainActivity extends AppCompatActivity {
             String gpsText = intent.getStringExtra("gpsText");
 
             lbGPS.setText(gpsText);
+        }
+    };
+
+    private BroadcastReceiver messageReceiverSpeechToText = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String speechText = intent.getStringExtra("speech");
+            if (txtOCR.getLineCount() > 20)
+                txtOCR.setText("");
+            txtOCR.setText(txtOCR.getText().toString() + "\n" + speechText);
         }
     };
 }
