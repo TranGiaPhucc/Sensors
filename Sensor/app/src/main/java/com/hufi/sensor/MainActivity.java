@@ -48,7 +48,7 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     CheckBox cbxLight, cbxAcc, cbxGravity, cbxInternet, cbxSatellites, cbxSpeechToText, cbxScreenTranslateOCR, cbxGPSMode, cbxBatteryStatus, cbxCPU;
-    Button btnSpeech, btnScreenshot, btnQRCode, btnMaps, btnClearCache, btnDiaChi;
+    Button btnSpeech, btnScreenshot, btnQRCode, btnMaps, btnClearCache, btnDiaChi, btnSpeechToTextHistory;
     TextToSpeech t1;
     ImageView imgScreenshot;
     TextView txtOCR, lbGPS;
@@ -96,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
         cbxInternet = findViewById(R.id.cbxInternet);
         cbxSatellites = findViewById(R.id.cbxSatellites);
         cbxSpeechToText = findViewById(R.id.cbxSpeechToText);
+        btnSpeechToTextHistory = findViewById(R.id.btnSpeechToTextHistory);
         btnSpeech = findViewById(R.id.btnSpeech);
         cbxScreenTranslateOCR = findViewById(R.id.cbxScreenTranslateOCR);
         btnScreenshot = findViewById(R.id.btnScreenshot);
@@ -244,6 +245,14 @@ public class MainActivity extends AppCompatActivity {
                 String toSpeak = "Ohaiyo";
                 Toast.makeText(getApplicationContext(), toSpeak,Toast.LENGTH_SHORT).show();
                 t1.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null);
+            }
+        });
+
+        btnSpeechToTextHistory.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, SpeechToTextHistoryActivity.class);
+                startActivity(intent);
             }
         });
 

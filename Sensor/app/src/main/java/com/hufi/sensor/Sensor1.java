@@ -29,12 +29,15 @@ import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Vibrator;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -118,6 +121,8 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     double length = 0;
     double avgSpeed = 0;
     int countSpeed = 0;
+
+    int lengthKm = 0;
 
     double curTime = 0;
     double oldLat = 0.0;
@@ -275,7 +280,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
         startPoint.setLatitude(oldLat);
         startPoint.setLongitude(oldLon);
 
-        Location endPoint = new Location("locationA");
+        Location endPoint = new Location("locationB");
         endPoint.setLatitude(newLat);
         endPoint.setLongitude(newLon);
 
@@ -295,11 +300,28 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
             deltaTime = timeDifferent;
             lengthCalc += distance;
             totalSpeedCalc += speedCalc;
+
+            vibrateEveryKm(lengthCalc);
         }
 
         curTime = newTime;
         oldLat = newLat;
         oldLon = newLon;
+    }
+
+    private void vibrateEveryKm(double length) {
+        int temp = (int) Math.floor(length / 1000);
+        if (temp > lengthKm) {
+            lengthKm = temp;
+
+            //Toast.makeText(getApplicationContext(), temp + "/" + lengthKm + "/" + length, Toast.LENGTH_SHORT).show();
+
+            Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+            v.vibrate(1000);
+
+            //long[] pattern = {500, 500, 500};
+            //v.vibrate(pattern, 0);
+        }
     }
 
     private double calculationBydistance(double lat1, double lon1, double lat2, double lon2){
@@ -416,7 +438,7 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
             String date = df.format(Calendar.getInstance().getTime());
             DiaChi d = new DiaChi(date + " (" + speedS + " km/h)", dist);
 
-            Database db = new Database(getApplicationContext());
+            Database db = new Database(Sensor1.this);        //getApplicationContext()
             db.insertDiaChi(d);
         }
 
@@ -479,15 +501,17 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
             icon = Icon.createWithBitmap(bitmap);
         }
 
+        String gr_name = "Speedometer";
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel("My notification a", "My notification a", NotificationManager.IMPORTANCE_DEFAULT);
+            NotificationChannel channel = new NotificationChannel(gr_name, gr_name, NotificationManager.IMPORTANCE_DEFAULT);
             channel.setVibrationPattern(new long[]{ 0 });
             channel.enableVibration(false);
 
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
 
-            NotificationCompat.Builder noti = new NotificationCompat.Builder(this, "My notification a")
+            NotificationCompat.Builder noti = new NotificationCompat.Builder(this, gr_name)
                     //.setContentTitle("Internet Speed Meter" + "     " + connectionType)
                     .setContentTitle(title)
                     .setContentText(contentText)
@@ -496,7 +520,8 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
                     .setStyle(new NotificationCompat.BigTextStyle()
                             .bigText(expandText))
                     .setAutoCancel(false)
-                    .setOnlyAlertOnce(true);
+                    .setOnlyAlertOnce(true)
+                    .setGroup(gr_name);
 
             //notificationManager.notify(3, noti.build());
 
@@ -535,6 +560,12 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     }
 
     private String getWeather(double lat, double lon) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+
+        if (networkInfo == null || !networkInfo.isConnected())
+            return "";
+
         String api_key = "213ee2ea20ed0756ba8cf2498077e023";
 
         String urlWeather = "https://api.openweathermap.org/data/2.5/weather?lat=" + lat + "&lon=" + lon + "&lang=vi&APPID=" + api_key;

@@ -37,7 +37,10 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.graphics.drawable.IconCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Locale;
 
 public class SpeechToText extends Service {
@@ -125,18 +128,25 @@ public class SpeechToText extends Service {
                     System.out.println("Printing matches: ");
                     for (String match : voiceResults) {
                         System.out.println(match);
-                        Toast.makeText(getApplicationContext(), match, Toast.LENGTH_LONG).show();
+                        //Toast.makeText(SpeechToText.this, match, Toast.LENGTH_LONG).show();
                         voiceDetected = "o";
                         //t1.speak(match, TextToSpeech.QUEUE_FLUSH, null);      //speak sometime cause speechrecognizer hear and loop over and over
 
                         showNotification();
 
+                        DateFormat df = new SimpleDateFormat("dd/MM HH:mm:ss");
+                        String date = df.format(Calendar.getInstance().getTime());
+                        SpeechToTextHistoryClass d = new SpeechToTextHistoryClass(date, match);
+
+                        Database db = new Database(SpeechToText.this);        //getApplicationContext()
+                        db.insertSpeechToTextHistory(d);
+
                         Intent it = new Intent("speech");
                         it.putExtra("speech", match);
                         LocalBroadcastManager.getInstance(SpeechToText.this).sendBroadcast(it);
 
-                        recognizer.destroy();
-                        start();
+                        //recognizer.destroy();
+                        //start();
                     }
                 }
             }
@@ -225,6 +235,9 @@ public class SpeechToText extends Service {
                 voiceDetected = "E";
                 status = "End";
                 showNotification();
+
+                recognizer.destroy();
+                start();
             }
 
             @Override
@@ -236,7 +249,36 @@ public class SpeechToText extends Service {
             @Override
             public void onPartialResults(Bundle partialResults) {
                 // TODO Auto-generated method stub
+                /*ArrayList<String> voiceResults = partialResults
+                        .getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                if (voiceResults == null) {
+                    System.out.println("No voice results");
+                    voiceDetected = "null";
+                } else {
+                    System.out.println("Printing matches: ");
+                    for (String match : voiceResults) {
+                        System.out.println(match);
+                        //Toast.makeText(SpeechToText.this, match, Toast.LENGTH_LONG).show();
+                        voiceDetected = "o";
+                        //t1.speak(match, TextToSpeech.QUEUE_FLUSH, null);      //speak sometime cause speechrecognizer hear and loop over and over
 
+                        showNotification();
+
+                        DateFormat df = new SimpleDateFormat("dd/MM HH:mm:ss");
+                        String date = df.format(Calendar.getInstance().getTime());
+                        SpeechToTextHistoryClass d = new SpeechToTextHistoryClass(date, match);
+
+                        Database db = new Database(SpeechToText.this);        //getApplicationContext()
+                        db.insertSpeechToTextHistory(d);
+
+                        Intent it = new Intent("speech");
+                        it.putExtra("speech", match);
+                        LocalBroadcastManager.getInstance(SpeechToText.this).sendBroadcast(it);
+
+                        //recognizer.destroy();
+                        //start();
+                    }
+                }*/
             }
 
             @Override
@@ -264,22 +306,25 @@ public class SpeechToText extends Service {
             icon = Icon.createWithBitmap(bitmap);
         }
 
+        String gr_name = "Speech to text";
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel("My notification d", "My notification d", NotificationManager.IMPORTANCE_DEFAULT);
+            NotificationChannel channel = new NotificationChannel(gr_name, gr_name, NotificationManager.IMPORTANCE_DEFAULT);
             channel.setVibrationPattern(new long[]{ 0 });
             channel.enableVibration(false);
 
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
 
-            NotificationCompat.Builder noti = new NotificationCompat.Builder(this, "My notification d")
+            NotificationCompat.Builder noti = new NotificationCompat.Builder(this, gr_name)
                     //.setContentTitle("Internet Speed Meter" + "     " + connectionType)
                     .setContentTitle(title)
                     .setContentText(contentText)
                     //builder.setSmallIcon(R.mipmap.ic_launcher_round);
                     .setSmallIcon(IconCompat.createFromIcon(icon))
                     .setAutoCancel(false)
-                    .setOnlyAlertOnce(true);
+                    .setOnlyAlertOnce(true)
+                    .setGroup(gr_name);
 
             //notificationManager.notify(3, noti.build());
 

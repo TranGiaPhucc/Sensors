@@ -53,7 +53,6 @@ public class Maps extends AppCompatActivity {
         webView.getSettings().setGeolocationEnabled(true);
         webView.setWebChromeClient(new GeoWebChromeClient());
         webView.getSettings().setDomStorageEnabled(true);
-        webView.getSettings().setUserAgentString(System.getProperty("http.agent"));
         webView.loadUrl("https://www.google.com/maps");
     }
 

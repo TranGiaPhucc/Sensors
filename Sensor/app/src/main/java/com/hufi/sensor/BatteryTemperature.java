@@ -92,21 +92,24 @@ public class BatteryTemperature extends Service {
             icon = Icon.createWithBitmap(bitmap);
         }
 
+        String gr_name = "Battery temperature";
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel("My notification", "My notification", NotificationManager.IMPORTANCE_DEFAULT);
+            NotificationChannel channel = new NotificationChannel(gr_name, gr_name, NotificationManager.IMPORTANCE_DEFAULT);
             channel.setVibrationPattern(new long[]{ 0 });
             channel.enableVibration(false);
 
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
 
-            NotificationCompat.Builder noti = new NotificationCompat.Builder(this, "My notification")
+            NotificationCompat.Builder noti = new NotificationCompat.Builder(this, gr_name)
                     .setContentTitle("Battery Temperature")
                     .setContentText(contentText)
                     //builder.setSmallIcon(R.mipmap.ic_launcher_round);
                     .setSmallIcon(IconCompat.createFromIcon(icon))
                     .setAutoCancel(false)
-                    .setOnlyAlertOnce(true);
+                    .setOnlyAlertOnce(true)
+                    .setGroup(gr_name);
 
             //notificationManager.notify(1, noti.build());
 

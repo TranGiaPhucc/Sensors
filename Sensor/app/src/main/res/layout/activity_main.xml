@@ -21,7 +21,7 @@
             android:layout_below="@id/cbxGravity"
             android:layout_marginLeft="30dp"
             android:layout_marginTop="10dp"
-            android:text="CPU Sensor" />
+            android:text="CPU" />
 
         <CheckBox
             android:id="@+id/cbxLight"
@@ -30,7 +30,7 @@
             android:layout_below="@id/cbxCPU"
             android:layout_marginLeft="30dp"
             android:layout_marginTop="10dp"
-            android:text="Light Sensor" />
+            android:text="Light" />
 
         <CheckBox
             android:id="@+id/cbxGravity"
@@ -123,7 +123,7 @@
             android:layout_alignParentRight="true"
             android:layout_marginTop="10dp"
             android:layout_marginRight="30dp"
-            android:text="History"
+            android:text="Location"
             android:textAllCaps="false" />
 
         <Button
@@ -148,6 +148,18 @@
             android:layout_marginTop="10dp"
             android:layout_marginRight="30dp"
             android:text="Speak"
+            android:textAllCaps="false"
+            android:visibility="gone"/>
+
+        <Button
+            android:id="@+id/btnSpeechToTextHistory"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cbxInternet"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="30dp"
+            android:text="Speech"
             android:textAllCaps="false" />
 
         <CheckBox

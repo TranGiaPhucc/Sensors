@@ -14,6 +14,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class DiaChiActivity extends AppCompatActivity {
     Button btnXoa;

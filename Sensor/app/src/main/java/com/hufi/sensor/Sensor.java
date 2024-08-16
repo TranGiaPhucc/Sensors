@@ -97,22 +97,25 @@ public class Sensor extends Service implements SensorEventListener {
             icon = Icon.createWithBitmap(bitmap);
         }
 
+        String gr_name = "Light";
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel("My notification light", "My notification light", NotificationManager.IMPORTANCE_DEFAULT);
+            NotificationChannel channel = new NotificationChannel(gr_name, gr_name, NotificationManager.IMPORTANCE_DEFAULT);
             channel.setVibrationPattern(new long[]{ 0 });
             channel.enableVibration(false);
 
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
 
-            NotificationCompat.Builder noti = new NotificationCompat.Builder(this, "My notification light")
+            NotificationCompat.Builder noti = new NotificationCompat.Builder(this, gr_name)
                     //.setContentTitle("Internet Speed Meter" + "     " + connectionType)
                     .setContentTitle("Light Sensor")
                     .setContentText(contentText)
                     //builder.setSmallIcon(R.mipmap.ic_launcher_round);
                     .setSmallIcon(IconCompat.createFromIcon(icon))
                     .setAutoCancel(false)
-                    .setOnlyAlertOnce(true);
+                    .setOnlyAlertOnce(true)
+                    .setGroup(gr_name);
 
             //notificationManager.notify(2, noti.build());
 
