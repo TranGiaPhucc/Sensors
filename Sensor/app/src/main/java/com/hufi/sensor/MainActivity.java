@@ -37,6 +37,7 @@ import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.text.Text;
 import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.TextRecognizer;
+import com.google.mlkit.vision.text.TextRecognizerOptionsInterface;
 import com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions;
 import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
@@ -499,6 +500,7 @@ public class MainActivity extends AppCompatActivity {
                 recognizer = TextRecognition.getClient(new KoreanTextRecognizerOptions.Builder().build());
             else
                 recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
+                //recognizer = TextRecognition.getClient(TextRecognizerOptions);
 
             // Prepare an InputImage object from your image file or camera frame
             InputImage image = InputImage.fromBitmap(bitmap, 0);

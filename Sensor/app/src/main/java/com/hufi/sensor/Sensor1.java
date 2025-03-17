@@ -111,6 +111,13 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
     double deltaTime = 0;
     double time = 0;
 
+    double time_0 = 0;
+    double time_1 = 0;   //1-20
+    double time_2 = 0;   //20-30
+    double time_3 = 0;   //30-40
+    double time_4 = 0;   //40-60
+    double time_5 = 0;   //60+
+
     int timeWeatherPer100Secs = 0;
 
     double bearing = 0;
@@ -388,6 +395,19 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
                 avgSpeed = length / (double) countSpeed;
                 avgCalcSpeed = totalSpeedCalc / time;
             }
+
+            if (speedS > 60)
+                time_5 += deltaTime;
+            else if (speedS > 40)
+                time_4 += deltaTime;
+            else if (speedS > 30)
+                time_3 += deltaTime;
+            else if (speedS > 20)
+                time_2 += deltaTime;
+            else if (speedS > 0)
+                time_1 += deltaTime;
+            else
+                time_0 += deltaTime;
         }
 
         double accuracyS = (double)Math.round(accuracy * 10) / 10;
@@ -442,16 +462,33 @@ public class Sensor1 extends Service implements LocationListener, GpsStatus.List
             db.insertDiaChi(d);
         }
 
+        int h = (int) Math.floor(timeS / 3600);
+        int m = (int) Math.floor((timeS - h * 3600) / 60);
+        int s = (int) timeS - h * 3600 - m * 60;
+        String hms = h + ":" + String.format("%02d", m) + ":" + String.format("%02d", s);
+
+        /*int time_0_int = (int) time_0;
+        int time_1_int = (int) time_1;
+        int time_2_int = (int) time_2;
+        int time_3_int = (int) time_3;
+        int time_4_int = (int) time_4;
+        int time_5_int = (int) time_5;*/
+
+
         String title = "";
         if (gpsSatellites == true)
             title = "(" + timeS + "s) " + speedS + " km/h        Satellites: " + strInUse + "/" + strInView;
         else
-            title = speedS + " (" + speedCalcS +") km/h     Acc: " + accuracyS + " m     Time: " + timeS + " (" + deltaTimeS + ") s";
+            title = speedS + " (" + speedCalcS +") km/h     Acc: " + accuracyS + " m     Time: " + hms + " (" + deltaTimeS + "s)";
             //title = speedS + " km/h" + " (" + countSpeed + "s) " + "        (debug)Total: " + totalSpeedS + " km/h";
 
         String content = "Max:          " + maxSpeedS + " (" + maxCalcSpeedS + ") km/h\nAverage:    "  + avgSpeedS + " (" + avgCalcSpeedS +") km/h\nLength:      " + (int) lengthCalcS + " m";
         String contentText = district;
         String expandText = "\n" + contentText + "\n\n" + "Bearing (from previous location): " + (int) bearingS + " (" + (int) bearingPrevS + ") degree\n\n" + content + "\n\n" + weather;
+
+        String speedRecordText = "AFK: " + Math.round(time_0) + " s\n1-20 km/h: " + Math.round(time_1) + " s\n21-30 km/h: " + Math.round(time_2) + " s\n31-40 km/h: " + Math.round(time_3) + " s\n41-60 km/h: " + Math.round(time_4) + " s\n60+ km/h: " + Math.round(time_5) + " s";
+        if (modeGPS)
+            expandText += speedRecordText;
 
         //Send data to MainActivity.class
         Intent intent = new Intent("gps");
